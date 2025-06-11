@@ -105,8 +105,10 @@ def agent_loop():
                 tool_name = call.function.name
                 try:
                     args = json.loads(call.function.arguments)
+                    # ==== DEBUG START ====
                     print(f"🔧 Tool llamada: {tool_name}")
-                    print(f"📦 Argumentos generados:", json.dumps(args))
+                    print(f"📦 Argumentos generados:", json.dumps(args, indent=2, ensure_ascii=False))
+                    # ==== DEBUG END ====
                 except Exception as e:
                     print(f"❌ Error parseando argumentos: {e}")
                     continue
@@ -120,6 +122,9 @@ def agent_loop():
                     r = httpx.post(TOOL_URL_TEMPLATE.format(tool["endpoint"]), json=args)
                     r.raise_for_status()
                     result = r.json()
+                    # ==== DEBUG START ====
+                    print(f"📥 Respuesta de {tool_name}:", json.dumps(result, indent=2, ensure_ascii=False))
+                    # ==== DEBUG END ====
                     messages.append({
                         "tool_call_id": call.id,
                         "role": "tool",

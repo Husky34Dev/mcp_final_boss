@@ -11,6 +11,8 @@ def run_query(query, params=()):
         cursor.execute(query, params)
         return cursor.fetchall()
 
+# === EXISTENTES Y CORREGIDOS ===
+
 @app.post("/existe_abonado", operation_id="existe_abonado")
 async def existe_abonado(dni: str = Body(..., embed=True)):
     result = run_query("SELECT 1 FROM abonados WHERE dni = ?", (dni,))
@@ -23,13 +25,13 @@ async def direccion_abonado(dni: str = Body(..., embed=True)):
 
 @app.post("/estado_pagos", operation_id="estado_pagos")
 async def estado_pagos(dni: str = Body(..., embed=True)):
-    result = run_query("SELECT DISTINCT estado FROM facturas WHERE dni_abonado = ?", (dni,))
+    result = run_query("SELECT estado FROM facturas WHERE dni_abonado = ?", (dni,))
     return {"estados": [r[0] for r in result]}
 
 @app.post("/ultimo_pago", operation_id="ultimo_pago")
 async def ultimo_pago(dni: str = Body(..., embed=True)):
     result = run_query(
-        "SELECT fecha, importe FROM facturas WHERE dni_abonado = ? AND LOWER(estado) = 'pagado' ORDER BY fecha DESC LIMIT 1",
+        "SELECT fecha, importe FROM facturas WHERE dni_abonado = ? AND estado = 'Pagado' ORDER BY fecha DESC LIMIT 1",
         (dni,)
     )
     return {"ultimo_pago": {"fecha": result[0][0], "importe": result[0][1]} if result else None}
@@ -37,7 +39,7 @@ async def ultimo_pago(dni: str = Body(..., embed=True)):
 @app.post("/deuda_total", operation_id="deuda_total")
 async def deuda_total(dni: str = Body(..., embed=True)):
     result = run_query(
-        "SELECT SUM(importe) FROM facturas WHERE dni_abonado = ? AND LOWER(estado) != 'pagado'",
+        "SELECT SUM(importe) FROM facturas WHERE dni_abonado = ? AND estado != 'pagado'",
         (dni,)
     )
     return {"deuda": result[0][0] if result[0][0] else 0}
@@ -45,10 +47,12 @@ async def deuda_total(dni: str = Body(..., embed=True)):
 @app.post("/facturas_pendientes", operation_id="facturas_pendientes")
 async def facturas_pendientes(dni: str = Body(..., embed=True)):
     result = run_query(
-        "SELECT fecha, importe FROM facturas WHERE dni_abonado = ? AND LOWER(estado) != 'pagado'",
+        "SELECT fecha, importe FROM facturas WHERE dni_abonado = ? AND estado != 'pagado'",
         (dni,)
     )
     return {"facturas": [{"fecha": r[0], "importe": r[1]} for r in result]}
+
+# === NUEVAS ===
 
 @app.post("/todas_las_facturas", operation_id="todas_las_facturas")
 async def todas_las_facturas(dni: str = Body(..., embed=True)):
@@ -56,14 +60,37 @@ async def todas_las_facturas(dni: str = Body(..., embed=True)):
         "SELECT fecha, estado, importe FROM facturas WHERE dni_abonado = ? ORDER BY fecha DESC",
         (dni,)
     )
-    return {
-        "facturas": [
-            {"fecha": r[0], "estado": r[1], "importe": r[2]}
-            for r in result
-        ]
-    }
+    return {"facturas": [{"fecha": r[0], "estado": r[1], "importe": r[2]} for r in result]}
 
+@app.post("/datos_abonado", operation_id="datos_abonado")
+async def datos_abonado(dni: str = Body(None), poliza: str = Body(None)):
+    if not dni and not poliza:
+        return {"error": "Debe proporcionar un DNI o una póliza"}
 
-# 🧠 MCP
+    if dni:
+        result = run_query(
+            "SELECT nombre, dni, direccion, correo, telefono, poliza FROM abonados WHERE dni = ?",
+            (dni,)
+        )
+    else:
+        result = run_query(
+            "SELECT nombre, dni, direccion, correo, telefono, poliza FROM abonados WHERE poliza = ?",
+            (poliza,)
+        )
+
+    if result:
+        nombre, dni, direccion, correo, telefono, poliza = result[0]
+        return {
+            "nombre": nombre,
+            "dni": dni,
+            "direccion": direccion,
+            "correo": correo,
+            "telefono": telefono,
+            "poliza": poliza
+        }
+    else:
+        return {"error": "Abonado no encontrado"}
+
+# Montar FastAPI-MCP
 mcp = FastApiMCP(app)
 mcp.mount()
