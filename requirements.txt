@@ -1,4 +1,5 @@
 fastapi
 fastapi-mcp
 uvicorn
-huggingface_hub[mcp]>=0.32.1
+groq
+jsonref
