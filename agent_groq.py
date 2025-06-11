@@ -101,38 +101,68 @@ def agent_loop():
 
         if tool_calls:
             messages.append(msg)
+            failed_tools = set()
+            calls_this_turn = 0
+            max_tool_calls_per_turn = 4
+
             for call in tool_calls:
+                if calls_this_turn >= max_tool_calls_per_turn:
+                    print("⚠️ Límite de llamadas por turno alcanzado.")
+                    break
+
                 tool_name = call.function.name
+                if tool_name in failed_tools:
+                    print(f"⚠️ Herramienta {tool_name} ya falló en este turno. Se omite.")
+                    continue
+
                 try:
                     args = json.loads(call.function.arguments)
-                    # ==== DEBUG START ====
                     print(f"🔧 Tool llamada: {tool_name}")
                     print(f"📦 Argumentos generados:", json.dumps(args, indent=2, ensure_ascii=False))
-                    # ==== DEBUG END ====
                 except Exception as e:
                     print(f"❌ Error parseando argumentos: {e}")
+                    failed_tools.add(tool_name)
                     continue
+                
+                    # Validación mínima
+                    if tool_name == "datos_abonado":
+                        if not args.get("dni") and not args.get("poliza"):
+                            print("⚠️ Ni DNI ni póliza proporcionados para datos_abonado. Se omite.")
+                            failed_tools.add(tool_name)
+                            continue
+                        # Limpieza: elimina poliza si viene vacía
+                        if "poliza" in args and args["poliza"] == "":
+                            print("ℹ️ Eliminando poliza vacía del payload de datos_abonado.")
+                            del args["poliza"]
+
 
                 tool = next((t for t in tools if t["name"] == tool_name), None)
                 if not tool:
                     print(f"⚠️ Herramienta no encontrada: {tool_name}")
+                    failed_tools.add(tool_name)
                     continue
 
                 try:
                     r = httpx.post(TOOL_URL_TEMPLATE.format(tool["endpoint"]), json=args)
                     r.raise_for_status()
                     result = r.json()
-                    # ==== DEBUG START ====
                     print(f"📥 Respuesta de {tool_name}:", json.dumps(result, indent=2, ensure_ascii=False))
-                    # ==== DEBUG END ====
                     messages.append({
                         "tool_call_id": call.id,
                         "role": "tool",
                         "name": tool_name,
                         "content": json.dumps(result, ensure_ascii=False)
                     })
+                    calls_this_turn += 1
                 except Exception as e:
                     print(f"❌ Error ejecutando {tool_name}:", e)
+                    failed_tools.add(tool_name)
+                    messages.append({
+                        "tool_call_id": call.id,
+                        "role": "tool",
+                        "name": tool_name,
+                        "content": json.dumps({"error": f"Error al ejecutar {tool_name}. Detalle: {str(e)}"}, ensure_ascii=False)
+                    })
                     continue
 
             try:
@@ -148,6 +178,7 @@ def agent_loop():
         else:
             print("🤖 >", msg.content.strip())
             messages.append(msg)
+
 
 if __name__ == "__main__":
     print("🟢 Agente Groq iniciado.")

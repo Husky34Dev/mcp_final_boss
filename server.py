@@ -69,12 +69,12 @@ async def datos_abonado(dni: str = Body(None), poliza: str = Body(None)):
 
     if dni:
         result = run_query(
-            "SELECT nombre, dni, direccion, correo, telefono, poliza FROM abonados WHERE dni = ?",
+            "SELECT nombre, dni, direccion, email, telefono, poliza FROM abonados WHERE dni = ?",
             (dni,)
-        )
+        ) 
     else:
         result = run_query(
-            "SELECT nombre, dni, direccion, correo, telefono, poliza FROM abonados WHERE poliza = ?",
+            "SELECT nombre, dni, direccion, email, telefono, poliza FROM abonados WHERE poliza = ?",
             (poliza,)
         )
 
