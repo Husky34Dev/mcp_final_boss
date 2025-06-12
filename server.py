@@ -39,7 +39,7 @@ async def ultimo_pago(dni: str = Body(..., embed=True)):
 @app.post("/deuda_total", operation_id="deuda_total")
 async def deuda_total(dni: str = Body(..., embed=True)):
     result = run_query(
-        "SELECT SUM(importe) FROM facturas WHERE dni_abonado = ? AND estado != 'pagado'",
+        "SELECT SUM(importe) FROM facturas WHERE dni_abonado = ? AND estado != 'Pagado'",
         (dni,)
     )
     return {"deuda": result[0][0] if result[0][0] else 0}
@@ -47,7 +47,7 @@ async def deuda_total(dni: str = Body(..., embed=True)):
 @app.post("/facturas_pendientes", operation_id="facturas_pendientes")
 async def facturas_pendientes(dni: str = Body(..., embed=True)):
     result = run_query(
-        "SELECT fecha, importe FROM facturas WHERE dni_abonado = ? AND estado != 'pagado'",
+        "SELECT fecha, importe FROM facturas WHERE dni_abonado = ? AND estado != 'Pagado'",
         (dni,)
     )
     return {"facturas": [{"fecha": r[0], "importe": r[1]} for r in result]}

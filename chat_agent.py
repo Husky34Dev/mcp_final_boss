@@ -5,58 +5,59 @@ from config import GROQ_API_KEY, MODEL, TOOL_URL_TEMPLATE
 from tools import fetch_tools
 from utils import extract_dni
 
-client = Groq(api_key=GROQ_API_KEY)
+class ChatAgent:
+    def __init__(self):
+        self.client = Groq(api_key=GROQ_API_KEY)
+        self.tools = fetch_tools()
+        self.messages = [{
+            "role": "system",
+            "content": (
+                "Eres un asistente de atención al cliente para una compañía de servicios. "
+                "Tu tarea es responder en español de forma clara y directa, ayudando al usuario a consultar información de abonados "
+                "como dirección, pagos, deudas y facturas. Utiliza las herramientas disponibles si lo crees necesario. "
+                "Si el usuario pide **todas las facturas** o **historial de facturas**, llama a la herramienta `todas_las_facturas`. "
+                "Si pide solo las **facturas pendientes**, usa `facturas_pendientes`. "
+                "No expliques qué herramienta usas, simplemente responde con la información. "
+                "Evita repeticiones y mantén un tono profesional."
+            )
+        }]
 
-def agent_loop():
-    tools = fetch_tools()
-    print(f"🛠️  Herramientas disponibles: {[t['name'] for t in tools]}")
+        self.groq_tools = [{
+            "type": "function",
+            "function": {
+                "name": tool["name"],
+                "description": tool["description"],
+                "parameters": tool["input_schema"]
+            }
+        } for tool in self.tools]
 
-    groq_tools = [{
-        "type": "function",
-        "function": {
-            "name": tool["name"],
-            "description": tool["description"],
-            "parameters": tool["input_schema"]
-        }
-    } for tool in tools]
-
-    messages = [{
-        "role": "system",
-        "content": (
-            "Eres un asistente de atención al cliente..."
-        )
-    }]
-
-    while True:
-        user_input = input("🧑 > ").strip()
+    def handle_message(self, user_input: str) -> str:
         dni = extract_dni(user_input)
         if dni:
             user_input += f" (DNI detectado: {dni})"
-        messages.append({"role": "user", "content": user_input})
+        self.messages.append({"role": "user", "content": user_input})
 
         try:
-            response = client.chat.completions.create(
+            response = self.client.chat.completions.create(
                 model=MODEL,
-                messages=messages,
-                tools=groq_tools,
+                messages=self.messages,
+                tools=self.groq_tools,
                 tool_choice="auto",
                 max_tokens=4096,
             )
         except Exception as e:
-            print("❌ Error en Groq:", e)
-            continue
+            return f"❌ Error en Groq: {str(e)}"
 
         msg = response.choices[0].message
         tool_calls = getattr(msg, "tool_calls", None)
 
         if tool_calls:
-            messages.append(msg)
+            self.messages.append(msg)
             failed_tools = set()
             calls_this_turn = 0
 
             for call in tool_calls:
                 if calls_this_turn >= 4:
-                    print("⚠️ Límite de llamadas por turno alcanzado.")
                     break
 
                 tool_name = call.function.name
@@ -65,7 +66,7 @@ def agent_loop():
 
                 try:
                     args = json.loads(call.function.arguments)
-                except Exception as e:
+                except Exception:
                     failed_tools.add(tool_name)
                     continue
 
@@ -76,7 +77,7 @@ def agent_loop():
                     if "poliza" in args and args["poliza"] == "":
                         del args["poliza"]
 
-                tool = next((t for t in tools if t["name"] == tool_name), None)
+                tool = next((t for t in self.tools if t["name"] == tool_name), None)
                 if not tool:
                     failed_tools.add(tool_name)
                     continue
@@ -85,7 +86,7 @@ def agent_loop():
                     r = httpx.post(TOOL_URL_TEMPLATE.format(tool["endpoint"]), json=args)
                     r.raise_for_status()
                     result = r.json()
-                    messages.append({
+                    self.messages.append({
                         "tool_call_id": call.id,
                         "role": "tool",
                         "name": tool_name,
@@ -94,7 +95,7 @@ def agent_loop():
                     calls_this_turn += 1
                 except Exception as e:
                     failed_tools.add(tool_name)
-                    messages.append({
+                    self.messages.append({
                         "tool_call_id": call.id,
                         "role": "tool",
                         "name": tool_name,
@@ -102,15 +103,15 @@ def agent_loop():
                     })
 
             try:
-                final = client.chat.completions.create(
+                final = self.client.chat.completions.create(
                     model=MODEL,
-                    messages=messages,
+                    messages=self.messages,
                     max_tokens=4096,
                 )
-                print("🤖 >", final.choices[0].message.content.strip())
-                messages.append(final.choices[0].message)
+                self.messages.append(final.choices[0].message)
+                return final.choices[0].message.content.strip()
             except Exception as e:
-                print("❌ Error final:", e)
+                return f"❌ Error final tras herramientas: {str(e)}"
         else:
-            print("🤖 >", msg.content.strip())
-            messages.append(msg)
+            self.messages.append(msg)
+            return msg.content.strip()
