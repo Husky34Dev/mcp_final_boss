@@ -11,7 +11,7 @@ def run_query(query, params=()):
         cursor.execute(query, params)
         return cursor.fetchall()
 
-# === EXISTENTES Y CORREGIDOS ===
+# === MÉTODOS DE CONSULTA ===
 
 @app.post("/existe_abonado", operation_id="existe_abonado")
 async def existe_abonado(dni: str = Body(..., embed=True)):
@@ -52,7 +52,6 @@ async def facturas_pendientes(dni: str = Body(..., embed=True)):
     )
     return {"facturas": [{"fecha": r[0], "importe": r[1]} for r in result]}
 
-# === NUEVAS ===
 
 @app.post("/todas_las_facturas", operation_id="todas_las_facturas")
 async def todas_las_facturas(dni: str = Body(..., embed=True)):
@@ -91,6 +90,6 @@ async def datos_abonado(dni: str = Body(None), poliza: str = Body(None)):
     else:
         return {"error": "Abonado no encontrado"}
 
-# Montar FastAPI-MCP
+# FastAPI-MCP
 mcp = FastApiMCP(app)
 mcp.mount()
