@@ -3,7 +3,7 @@ from fastapi_mcp import FastApiMCP
 import sqlite3
 
 app = FastAPI()
-DB_PATH = "demo.db"
+DB_PATH = "app/db/demo.db"
 
 def run_query(query, params=()):
     with sqlite3.connect(DB_PATH) as conn:

@@ -2,8 +2,8 @@ import json
 import httpx
 from groq import Groq
 from config import GROQ_API_KEY, MODEL, TOOL_URL_TEMPLATE
-from tools import fetch_tools
-from utils import extract_dni
+from app.tools.tools import fetch_tools
+from app.utils.utils import extract_dni
 
 class ChatAgent:
     def __init__(self):

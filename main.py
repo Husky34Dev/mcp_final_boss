@@ -1,4 +1,4 @@
-from chat_agent import ChatAgent
+from app.agent.chat_agent import ChatAgent
 
 def cli_loop():
     agent = ChatAgent()

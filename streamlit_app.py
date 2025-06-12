@@ -1,5 +1,5 @@
 import streamlit as st
-from chat_agent import ChatAgent
+from app.agent.chat_agent import ChatAgent
 
 st.set_page_config(page_title="Agente Groq", page_icon="🤖", layout="centered")
 st.title("Asistente de Atención al Cliente")
