@@ -1,0 +1,79 @@
+2025-06-13 12:46:30,974 - INFO - No auth config provided, skipping auth setup
+2025-06-13 12:46:30,975 - INFO - MCP server listening at /mcp
+2025-06-13 12:48:21,476 - INFO - No auth config provided, skipping auth setup
+2025-06-13 12:48:21,476 - INFO - MCP server listening at /mcp
+2025-06-13 12:48:27,836 - INFO - No auth config provided, skipping auth setup
+2025-06-13 12:48:27,836 - INFO - MCP server listening at /mcp
+2025-06-13 12:48:42,103 - INFO - No auth config provided, skipping auth setup
+2025-06-13 12:48:42,103 - INFO - MCP server listening at /mcp
+2025-06-13 12:48:48,429 - INFO - No auth config provided, skipping auth setup
+2025-06-13 12:48:48,430 - INFO - MCP server listening at /mcp
+2025-06-13 12:49:29,967 - INFO - No auth config provided, skipping auth setup
+2025-06-13 12:49:29,968 - INFO - MCP server listening at /mcp
+2025-06-13 12:49:50,625 - INFO - No auth config provided, skipping auth setup
+2025-06-13 12:49:50,626 - INFO - MCP server listening at /mcp
+2025-06-13 13:00:58,131 - INFO - No auth config provided, skipping auth setup
+2025-06-13 13:00:58,132 - INFO - MCP server listening at /mcp
+2025-06-13 13:01:10,737 - INFO - No auth config provided, skipping auth setup
+2025-06-13 13:01:10,738 - INFO - MCP server listening at /mcp
+2025-06-13 13:01:27,609 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:02:17,322 - INFO - No auth config provided, skipping auth setup
+2025-06-13 13:02:17,323 - INFO - MCP server listening at /mcp
+2025-06-13 13:02:25,749 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:03:57,822 - INFO - No auth config provided, skipping auth setup
+2025-06-13 13:03:57,822 - INFO - MCP server listening at /mcp
+2025-06-13 13:04:04,998 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:05:48,915 - INFO - No auth config provided, skipping auth setup
+2025-06-13 13:05:48,915 - INFO - MCP server listening at /mcp
+2025-06-13 13:06:02,107 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:06:06,478 - INFO - POST http://localhost:8000/todas_las_facturas - Status: 200
+2025-06-13 13:06:48,125 - INFO - POST http://localhost:8000/incidencias_por_dni - Status: 200
+2025-06-13 13:06:58,017 - INFO - POST http://localhost:8000/incidencias_usuario - Status: 200
+2025-06-13 13:07:12,637 - INFO - No auth config provided, skipping auth setup
+2025-06-13 13:07:12,638 - INFO - MCP server listening at /mcp
+2025-06-13 13:07:15,327 - INFO - No auth config provided, skipping auth setup
+2025-06-13 13:07:15,328 - INFO - MCP server listening at /mcp
+2025-06-13 13:09:07,014 - INFO - No auth config provided, skipping auth setup
+2025-06-13 13:09:07,015 - INFO - MCP server listening at /mcp
+2025-06-13 13:11:28,088 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:11:34,676 - INFO - POST http://localhost:8000/incidencias_por_dni - Status: 200
+2025-06-13 13:12:42,974 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:12:47,589 - INFO - POST http://localhost:8000/incidencias_por_dni - Status: 200
+2025-06-13 13:16:22,700 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:16:27,247 - INFO - POST http://localhost:8000/incidencias_por_dni - Status: 200
+2025-06-13 13:16:45,661 - INFO - POST http://localhost:8000/datos_abonado - Status: 200
+2025-06-13 13:17:18,204 - INFO - POST http://localhost:8000/incidencias_por_nombre - Status: 200
+2025-06-13 13:18:23,916 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:18:28,427 - INFO - POST http://localhost:8000/incidencias_por_ubicacion - Status: 200
+2025-06-13 13:19:51,449 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:25:37,407 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:25:45,671 - INFO - POST http://localhost:8000/incidencias_por_dni - Status: 200
+2025-06-13 13:25:56,225 - INFO - POST http://localhost:8000/todas_las_facturas - Status: 200
+2025-06-13 13:26:28,330 - INFO - POST http://localhost:8000/deuda_total - Status: 200
+2025-06-13 13:29:09,385 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:29:17,152 - INFO - POST http://localhost:8000/crear_incidencia - Status: 200
+2025-06-13 13:31:00,943 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:31:06,255 - INFO - POST http://localhost:8000/crear_incidencia - Status: 200
+2025-06-13 13:31:17,389 - INFO - POST http://localhost:8000/todas_las_facturas - Status: 200
+2025-06-13 13:33:30,832 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:35:21,274 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:37:31,304 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:39:46,166 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:39:53,424 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:40:56,932 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:41:43,149 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:41:47,363 - INFO - POST http://localhost:8000/crear_incidencia - Status: 200
+2025-06-13 13:43:52,804 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:43:57,210 - INFO - POST http://localhost:8000/crear_incidencia - Status: 200
+2025-06-13 13:45:57,991 - INFO - POST http://localhost:8000/todas_las_facturas - Status: 200
+2025-06-13 13:49:40,492 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:49:56,812 - INFO - POST http://localhost:8000/todas_las_facturas - Status: 200
+2025-06-13 13:50:02,758 - INFO - POST http://localhost:8000/datos_abonado - Status: 200
+2025-06-13 13:54:00,602 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:54:44,108 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:55:07,608 - INFO - POST http://localhost:8000/incidencias_por_dni - Status: 200
+2025-06-13 13:57:30,308 - INFO - GET http://localhost:8000/openapi.json - Status: 200
+2025-06-13 13:57:37,101 - INFO - POST http://localhost:8000/incidencias_por_ubicacion - Status: 200
+2025-06-13 13:58:08,609 - INFO - POST http://localhost:8000/crear_incidencia - Status: 200
+2025-06-13 13:59:30,215 - INFO - POST http://localhost:8000/crear_incidencia - Status: 200
+2025-06-13 14:01:25,707 - INFO - POST http://localhost:8000/incidencias_por_ubicacion - Status: 200

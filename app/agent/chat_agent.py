@@ -4,23 +4,39 @@ from groq import Groq
 from config import GROQ_API_KEY, MODEL, TOOL_URL_TEMPLATE
 from app.tools.tools import fetch_tools
 from app.utils.utils import extract_dni
+import logging
+
+# Configuración del logger
+logging.basicConfig(
+    filename="chat_agent.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 class ChatAgent:
     def __init__(self):
         self.client = Groq(api_key=GROQ_API_KEY)
         self.tools = fetch_tools()
-        self.messages = [{
+        self.messages = [
+            {
             "role": "system",
             "content": (
                 "Eres un asistente de atención al cliente para una compañía de servicios. "
-                "Tu tarea es responder en español de forma clara y directa, ayudando al usuario a consultar información de abonados "
-                "como dirección, pagos, deudas y facturas. Utiliza las herramientas disponibles si lo crees necesario. "
-                "Si el usuario pide **todas las facturas** o **historial de facturas**, llama a la herramienta `todas_las_facturas`. "
-                "Si pide solo las **facturas pendientes**, usa `facturas_pendientes`. "
-                "No expliques qué herramienta usas, simplemente responde con la información. "
-                "Evita repeticiones y mantén un tono profesional."
+                "Tu tarea es responder en español de forma clara y directa, ayudando al usuario a consultar información de abonados, "
+                "como dirección, pagos, deudas, facturas e incidencias.\n\n"
+                "Utiliza las herramientas disponibles si lo crees necesario. Estas son algunas reglas que debes seguir:\n"
+                "- Si el usuario pide **todas las facturas** o el **historial de facturas**, llama a `todas_las_facturas`.\n"
+                "- Si el usuario pide **facturas pendientes**, usa `facturas_pendientes`.\n"
+                "- Si menciona un **DNI**, puedes usar `datos_abonado`, `deuda_total`, `facturas_pendientes`, etc.\n"
+                "- Si se habla de **crear una incidencia**, llama a `crear_incidencia` usando `dni`, `ubicacion`, `descripcion`, `estado`.\n"
+                "- Si se mencionan **incidencias en una ciudad o ubicación** como 'Albacete', llama a `incidencias_por_ubicacion`.\n"
+                "- Si se mencionan **incidencias de un abonado** por DNI, llama a `incidencias_por_dni`.\n\n"
+                "No expliques qué herramienta estás usando. Simplemente responde con la información solicitada, de forma clara y profesional. "
+                "Evita repeticiones y mantén siempre el contexto en español."
             )
-        }]
+            }
+        ]
+
 
         self.groq_tools = [{
             "type": "function",
@@ -32,12 +48,14 @@ class ChatAgent:
         } for tool in self.tools]
 
     def handle_message(self, user_input: str) -> str:
+        logging.info(f"Mensaje recibido: {user_input}")
         dni = extract_dni(user_input)
         if dni:
             user_input += f" (DNI detectado: {dni})"
         self.messages.append({"role": "user", "content": user_input})
 
         try:
+            logging.info(f"Parámetros enviados a Groq: {self.messages}")
             response = self.client.chat.completions.create(
                 model=MODEL,
                 messages=self.messages,

@@ -6,3 +6,4 @@ jsonref
 streamlit
 streamlit-extras
 python-dotenv
+python-jose

@@ -15,3 +15,7 @@ def clean_schema(schema):
             return [clean_schema(i) for i in schema]
         else:
             return str(schema)
+
+def extract_nombre(texto):
+    match = re.search(r"\b[A-Z][a-z]+\s[A-Z][a-z]+\b", texto)
+    return match.group(0) if match else None
