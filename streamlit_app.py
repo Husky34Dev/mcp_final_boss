@@ -7,16 +7,16 @@ st.set_page_config(page_title="Agente Groq", page_icon="🤖", layout="wide")
 
 # === SIDEBAR ===
 with st.sidebar:
-    st.markdown("## 🧠 Asistente Virtual")
+    st.markdown("## Asistente Virtual")
     st.markdown("Consulta información de abonados, incidencias, facturas y más.")
     st.markdown("---")
     st.markdown("**Desarrollado por:** Bernardo Martínez Romero")
-    st.markdown(f"📅 {datetime.now().strftime('%d/%m/%Y')}")
+    st.markdown(f"{datetime.now().strftime('%d/%m/%Y')}")
     st.markdown("---")
     st.caption("Versión beta - Proyecto Groq + FastAPI + SQLite")
 
 # === HEADER ===
-st.title("🤖 Asistente de Atención al Cliente")
+st.title("Asistente de Atención al Cliente")
 
 # Inicializar estado
 if "messages" not in st.session_state:
