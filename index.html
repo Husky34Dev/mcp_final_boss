@@ -1,180 +1,637 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Asistente Virtual</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente Inteligente Multi-Agente - Demo Profesional</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* CSS Variables for easy theming */
+        :root {
+            --primary-color: #4CAF50; /* A friendly green */
+            --primary-dark: #388E3C;
+            --secondary-color: #f0f2f5; /* Light gray for backgrounds */
+            --text-color: #333;
+            --light-text-color: #666;
+            --border-color: #e0e0e0;
+            --user-bubble-bg: #e1ffdc; /* Light green for user messages */
+            --bot-bubble-bg: #ffffff; /* White for bot messages */
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --border-radius-sm: 8px;
+            --border-radius-md: 16px;
+            --border-radius-lg: 24px;
+        }
 
-    #chat-toggle {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #0066cc;
-      color: white;
-      padding: 14px;
-      border-radius: 50%;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      z-index: 999;
-    }
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden; /* Hide scrollbars on body */
+        }
 
-    #chat-window {
-      position: fixed;
-      bottom: 80px;
-      right: 20px;
-      width: 320px;
-      height: 480px;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      z-index: 1000;
-    }
+        /* --- Chat Toggle Button --- */
+        #chat-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--primary-color);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 6px 18px var(--shadow-medium);
+            z-index: 999;
+            font-size: 28px;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
 
-    .hidden {
-      display: none;
-    }
+        #chat-toggle:hover {
+            transform: translateY(-3px);
+            background-color: var(--primary-dark);
+        }
 
-    .chat-header {
-      background: #0066cc;
-      color: white;
-      padding: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+        /* --- Chat Window --- */
+        #chat-window {
+            position: fixed;
+            bottom: 100px; /* Adjusted to be above the toggle button */
+            right: 30px;
+            width: 360px; /* Slightly wider */
+            height: 520px; /* Slightly taller */
+            background: var(--bot-bubble-bg);
+            border-radius: var(--border-radius-md);
+            box-shadow: 0 10px 30px var(--shadow-medium);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+            pointer-events: none; /* Allows clicks through when hidden */
+        }
 
-    .chat-messages {
-      flex: 1;
-      padding: 10px;
-      overflow-y: auto;
-      background: #f6f6f6;
-      display: flex;
-      flex-direction: column;
-    }
+        #chat-window.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+        }
 
-    .chat-input {
-      display: flex;
-      padding: 10px;
-      border-top: 1px solid #ddd;
-    }
+        /* --- Chat Header --- */
+        .chat-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top-left-radius: var(--border-radius-md);
+            border-top-right-radius: var(--border-radius-md);
+            box-shadow: 0 2px 8px var(--shadow-light);
+            position: relative; /* For the status dot */
+        }
 
-    .chat-input input {
-      flex: 1;
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin-right: 8px;
-    }
+        .chat-header h3 {
+            margin: 0;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
 
-    .chat-input button {
-      background: #0066cc;
-      color: white;
-      border: none;
-      padding: 0 16px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
+        .chat-header .status-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #4CAF50; /* Green for online */
+            border-radius: 50%;
+            margin-left: 8px;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
+            animation: pulse 1.5s infinite;
+        }
 
-    .user-msg, .bot-msg {
-      margin: 6px 0;
-      padding: 8px 12px;
-      border-radius: 12px;
-      max-width: 85%;
-      word-wrap: break-word;
-    }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
 
-    .user-msg {
-      background: #d1e7ff;
-      align-self: flex-end;
-    }
+        .chat-header button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0 5px;
+            transition: transform 0.2s ease;
+        }
 
-    .bot-msg {
-      background: #eee;
-      align-self: flex-start;
-    }
-  </style>
+        .chat-header button:hover {
+            transform: scale(1.1);
+        }
+
+        /* --- Chat Messages Container --- */
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: var(--secondary-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Space between messages */
+            scroll-behavior: smooth; /* Smooth scrolling */
+        }
+
+        /* Custom scrollbar for better aesthetics */
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-messages::-webkit-scrollbar-track {
+            background: var(--secondary-color);
+            border-radius: 10px;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: var(--light-text-color);
+        }
+
+        /* --- Message Bubbles --- */
+        .message-container {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            max-width: 85%;
+        }
+
+        .message-container.user {
+            align-self: flex-end;
+            flex-direction: row-reverse; /* User message on right */
+        }
+
+        .message-container.bot {
+            align-self: flex-start;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--primary-dark);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8em;
+            flex-shrink: 0; /* Prevent avatar from shrinking */
+            overflow: hidden; /* For image avatars */
+        }
+
+        .message-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .message-content {
+            padding: 10px 15px;
+            border-radius: var(--border-radius-lg); /* More rounded */
+            word-wrap: break-word;
+            line-height: 1.4;
+            box-shadow: 0 1px 3px var(--shadow-light);
+            font-size: 0.95em;
+        }
+
+        .user .message-content {
+            background: var(--user-bubble-bg);
+            color: var(--text-color);
+            border-bottom-right-radius: var(--border-radius-sm); /* Pointy corner towards user */
+        }
+
+        .bot .message-content {
+            background: var(--bot-bubble-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-bottom-left-radius: var(--border-radius-sm); /* Pointy corner towards bot */
+        }
+
+        /* --- Styling for HTML content within messages (the fix for "feo" formatting) --- */
+        .message-content ul {
+            list-style: none; /* Remove default bullets */
+            padding: 0;
+            margin: 10px 0 0 0; /* Adjust spacing from preceding text */
+        }
+
+        .message-content li {
+            margin-bottom: 5px; /* Space out list items */
+            font-size: 0.95em; /* Keep text size consistent or slightly smaller */
+        }
+
+        .message-content strong {
+            color: var(--primary-dark); /* Make labels stand out with your primary color */
+            font-weight: 600;
+        }
+        /* For simple <br> based formatting, ensure consistency */
+        .message-content br + strong {
+            margin-top: 5px; /* Add slight space if a strong tag follows a line break */
+            display: block; /* Ensures it starts on a new line correctly */
+        }
+
+
+        /* --- Typing Indicator --- */
+        .typing-indicator .message-content {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            background: var(--bot-bubble-bg);
+            border: 1px solid var(--border-color);
+            color: var(--light-text-color);
+        }
+
+        .typing-indicator .dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--light-text-color);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-indicator .dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator .dot:nth-child(2) { animation-delay: -0.16s; }
+        .typing-indicator .dot:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* --- Chat Input --- */
+        .chat-input {
+            display: flex;
+            padding: 15px 15px;
+            border-top: 1px solid var(--border-color);
+            background: white;
+            align-items: center;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px 15px;
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--border-color);
+            margin-right: 10px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .chat-input input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        .chat-input button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            font-size: 1.2em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .chat-input button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        /* --- Initial Welcome Message & Demo Instructions --- */
+        .welcome-message {
+            text-align: center;
+            padding: 20px;
+            color: var(--light-text-color);
+            font-size: 0.9em;
+            line-height: 1.6;
+            background-color: white;
+            border-radius: var(--border-radius-md);
+            margin: 15px;
+            box-shadow: 0 1px 3px var(--shadow-light);
+        }
+        .welcome-message h4 {
+            margin-top: 0;
+            color: var(--primary-dark);
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        .welcome-message p {
+            margin-bottom: 0;
+        }
+        .welcome-message ul {
+            text-align: left;
+            margin: 10px 0 0 20px;
+            padding: 0;
+            list-style: disc; /* Use default disc for welcome list */
+        }
+        .welcome-message li {
+            margin-bottom: 5px;
+            font-size: 1em; /* Ensure this is not affected by message-content li styles */
+            color: var(--text-color);
+        }
+        .welcome-message li strong {
+            color: var(--primary-color); /* Make labels in welcome stand out */
+        }
+
+
+        /* --- Responsive Adjustments (optional, for full page demo) --- */
+        @media (max-width: 768px) {
+            #chat-window {
+                width: 90%;
+                height: 80%;
+                bottom: 5%;
+                right: 5%;
+                left: 5%;
+                top: auto;
+                transform: translateY(0) scale(1); /* No initial transform for mobile */
+                border-radius: var(--border-radius-md);
+            }
+            #chat-toggle {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+            }
+            body {
+                align-items: flex-end; /* Align chat window to bottom on small screens */
+            }
+        }
+
+        /* ====================================================================== */
+/* === NUEVOS ESTILOS PARA TABLAS Y DATOS ESTRUCTURADOS EN MARKDOWN === */
+/* ====================================================================== */
+
+.message-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: 0.9em;
+}
+
+.message-content th,
+.message-content td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.message-content th {
+    font-weight: 600;
+    color: var(--primary-dark);
+    background-color: var(--secondary-color);
+}
+
+.message-content tr:last-child td {
+    border-bottom: none;
+}
+
+.message-content th:nth-child(2),
+.message-content td:nth-child(2) {
+    text-align: center;
+}
+
+.message-content th:last-child,
+.message-content td:last-child {
+    text-align: right;
+}
+
+.message-content p:last-of-type {
+    margin-top: 15px;
+    text-align: right;
+    font-size: 1em;
+    font-weight: bold;
+}
+
+.message-content h3,
+.message-content h4 {
+    margin-bottom: 5px;
+    font-size: 1.05em;
+    color: var(--text-color);
+}
+
+    </style>
 </head>
 <body>
 
-  <!-- Botón flotante -->
-  <div id="chat-toggle" onclick="toggleChat()">💬</div>
-
-  <!-- Ventana del chat -->
-  <div id="chat-window" class="hidden">
-    <div class="chat-header">
-      <span>Asistente Virtual</span>
-      <button onclick="toggleChat()">✕</button>
+    <div id="chat-toggle" onclick="toggleChat()">
+        <i class="fas fa-comments"></i>
     </div>
-    <div class="chat-messages" id="chat-messages"></div>
-    <div class="chat-input">
-      <input type="text" id="user-input" placeholder="Escribe tu mensaje..." onkeydown="handleKey(event)">
-      <button onclick="sendMessage()">➤</button>
+
+    <div id="chat-window">
+        <div class="chat-header">
+            <h3>
+                Asistente Inteligente
+                <span class="status-dot"></span>
+            </h3>
+            <button onclick="toggleChat()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="welcome-message">
+                <h4>¡Hola! Soy tu Asistente Inteligente Multi-Agente.</h4>
+                <p>Estoy diseñado para ayudarte con diversas consultas. Puedes probar a preguntarme sobre:</p>
+                <ul>
+                    <li><strong>Soporte Técnico:</strong> "Mi internet no funciona."</li>
+                    <li><strong>Ventas:</strong> "¿Qué productos ofrecen para empresas?"</li>
+                    <li><strong>Recursos Humanos:</strong> "¿Cómo solicito mis vacaciones?"</li>
+                    <li><strong>Información General:</strong> "¿Cuál es el horario de atención?"</li>
+                </ul>
+                <p>¡Solo escribe tu pregunta!</p>
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="user-input" placeholder="Pregúntame algo..." onkeydown="handleKey(event)">
+            <button onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
     </div>
-  </div>
 
-  <script>
-    const API_URL = "http://127.0.0.1:8001/chat";
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        // Adjust this URL to your actual backend API endpoint
+        const API_URL = "http://127.0.0.1:8001/chat"; 
 
-    function toggleChat() {
-      const chat = document.getElementById("chat-window");
-      chat.classList.toggle("hidden");
-    }
+        const chatWindow = document.getElementById("chat-window");
+        const chatMessages = document.getElementById("chat-messages");
+        const userInput = document.getElementById("user-input");
 
-    function handleKey(e) {
-      if (e.key === "Enter") sendMessage();
-    }
+        // Simple mapping for demo avatars (replace with real agent logic or image URLs)
+        const agentAvatars = {
+            'default': '<i class="fas fa-robot"></i>', // Default bot
+            'Soporte Técnico': '<i class="fas fa-headset"></i>',
+            'Ventas': '<i class="fas fa-handshake"></i>',
+            'Recursos Humanos': '<i class="fas fa-user-tie"></i>',
+            'Información General': '<i class="fas fa-info-circle"></i>'
+            // Add more agents as needed, e.g., 'AgentX': '<img src="path/to/agentx.png">'
+        };
 
-    async function sendMessage() {
-      const input = document.getElementById("user-input");
-      const message = input.value.trim();
-      if (!message) return;
+        function toggleChat() {
+            chatWindow.classList.toggle("active");
+            if (chatWindow.classList.contains("active")) {
+                userInput.focus(); // Focus input when chat opens
+                scrollToBottom();
+            }
+        }
 
-      appendMessage("user", message);
-      input.value = "";
+        function handleKey(e) {
+            if (e.key === "Enter") {
+                sendMessage();
+            }
+        }
 
-      appendMessage("bot", "⏳ Pensando...");
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
 
-      try {
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message })
-        });
-        const data = await res.json();
+            appendMessage("user", message);
+            userInput.value = ""; // Clear input immediately
 
-        removeLastBotMessage();
-        appendMessage("bot", data.reply);
-      } catch (err) {
-        removeLastBotMessage();
-        appendMessage("bot", "❌ Error al contactar con el asistente.");
-      }
-    }
+            // Show typing indicator
+            const typingIndicator = appendTypingIndicator();
 
-    function appendMessage(sender, text) {
-      const msgDiv = document.createElement("div");
-      msgDiv.className = sender === "user" ? "user-msg" : "bot-msg";
-      msgDiv.textContent = text;
+            try {
+                const res = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: message })
+                });
 
-      const messages = document.getElementById("chat-messages");
-      messages.appendChild(msgDiv);
-      messages.scrollTop = messages.scrollHeight;
-    }
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
 
-    function removeLastBotMessage() {
-      const messages = document.getElementById("chat-messages");
-      const last = messages.lastChild;
-      if (last && last.className === "bot-msg") {
-        messages.removeChild(last);
-      }
-    }
-  </script>
+                const data = await res.json();
+
+                // Remove typing indicator before appending bot response
+                removeMessage(typingIndicator);
+
+                // Simulate agent assignment based on keywords (replace with actual backend logic)
+                let agentName = 'Información General'; // Default for general queries
+                let botReply = data.reply; // Assume backend sends the raw reply first
+
+                // Mostrar siempre la respuesta real del backend, renderizada como Markdown
+                appendMessage("bot", botReply, agentName);
+
+            } catch (err) {
+                console.error("Error al contactar con el asistente:", err);
+                removeMessage(typingIndicator); // Remove typing indicator on error too
+                appendMessage("bot", `❌ Lo siento, hubo un error al procesar tu solicitud. (${err.message}). Por favor, intenta de nuevo más tarde.`, 'default');
+            }
+        }
+
+        // Añadir soporte para Markdown usando marked.js
+        function renderMarkdown(mdText) {
+            if (window.marked) {
+                return window.marked.parse(mdText);
+            }
+            // Fallback: mostrar como texto plano si marked.js no está cargado
+            return mdText.replace(/\n/g, '<br>');
+        }
+
+        /**
+         * Appends a message to the chat interface.
+         * @param {string} sender - 'user' or 'bot'.
+         * @param {string} text - The message content (can now include HTML).
+         * @param {string} agent - The name of the agent (for bot messages, influences avatar).
+         * @returns {HTMLElement} The created message container element.
+         */
+        function appendMessage(sender, text, agent = 'default') {
+            const messageContainer = document.createElement("div");
+            messageContainer.className = `message-container ${sender}`;
+
+            const avatarDiv = document.createElement("div");
+            avatarDiv.className = "message-avatar";
+            if (sender === 'bot') {
+                avatarDiv.innerHTML = agentAvatars[agent] || agentAvatars['default'];
+            } else {
+                avatarDiv.innerHTML = '<i class="fas fa-user"></i>'; // User avatar
+            }
+            
+            const messageContentDiv = document.createElement("div");
+            messageContentDiv.className = "message-content";
+            // Siempre renderiza Markdown para mensajes del bot
+            if (sender === 'bot') {
+                messageContentDiv.innerHTML = renderMarkdown(text);
+            } else {
+                messageContentDiv.innerHTML = text;
+            }
+
+            if (sender === 'user') {
+                messageContainer.appendChild(messageContentDiv);
+                messageContainer.appendChild(avatarDiv);
+            } else {
+                messageContainer.appendChild(avatarDiv);
+                messageContainer.appendChild(messageContentDiv);
+            }
+            
+            chatMessages.appendChild(messageContainer);
+            scrollToBottom();
+            return messageContainer; // Return the element for removal if needed (like typing indicator)
+        }
+
+        function appendTypingIndicator() {
+            const typingContainer = document.createElement("div");
+            typingContainer.className = "message-container bot typing-indicator";
+
+            const avatarDiv = document.createElement("div");
+            avatarDiv.className = "message-avatar";
+            avatarDiv.innerHTML = agentAvatars['default']; // Use default bot avatar for typing
+
+            const messageContentDiv = document.createElement("div");
+            messageContentDiv.className = "message-content";
+            messageContentDiv.innerHTML = `
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            `;
+            
+            typingContainer.appendChild(avatarDiv);
+            typingContainer.appendChild(messageContentDiv);
+            chatMessages.appendChild(typingContainer);
+            scrollToBottom();
+            return typingContainer; // Return the created element
+        }
+
+        function removeMessage(element) {
+            if (element && element.parentNode === chatMessages) {
+                chatMessages.removeChild(element);
+            }
+        }
+
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Optional: Auto-open chat on load for a full-page demo effect
+        // window.onload = () => {
+        //     toggleChat(); 
+        // };
+    </script>
 
 </body>
 </html>

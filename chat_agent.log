@@ -396,3 +396,293 @@
 2025-06-17 10:57:07,812 - INFO - Mensaje recibido: Dame las facturas del abonado con dni 12345678A
 2025-06-17 10:57:29,524 - INFO - Mensaje recibido: Me puedes dar todos los datos de ese abonado?
 2025-06-17 10:58:02,848 - INFO - Mensaje recibido: Hay alguna avería en Madrid?
+2025-06-17 11:48:18,448 - INFO - Mensaje recibido: me puedes dar las facturas del abonado con dni 12345678A
+2025-06-17 11:48:38,767 - INFO - Mensaje recibido: y me puedes dar todos los datos de este abonado? cual era su numero de dni?
+2025-06-17 11:49:37,337 - INFO - Mensaje recibido: hola
+2025-06-17 11:49:40,736 - INFO - Mensaje recibido: me puedes dar las facturas del abonado con dni 12345678A
+2025-06-17 11:49:48,341 - INFO - Mensaje recibido: y me puedes dar todos los datos de este abonado? cual era su numero de dni?
+2025-06-17 11:50:18,337 - INFO - Mensaje recibido: me puedes dar las facturas del abonado con dni 12345678A
+2025-06-17 11:50:36,314 - INFO - Mensaje recibido: me puedes dar los datos de este abonado
+2025-06-17 11:57:15,585 - INFO - Mensaje recibido: hola, dame los datos del abonado con dni 12345678A
+2025-06-17 11:57:34,754 - INFO - Mensaje recibido: Y me puedes dar las facturas pendientes y el total de su deuda?
+2025-06-17 12:00:17,515 - INFO - Mensaje recibido: hola, dame los datos del abonado con dni 12345678A
+2025-06-17 12:00:28,166 - INFO - Mensaje recibido: y me puedes dar todas sus facturas?
+2025-06-17 12:50:04,637 - INFO - Mensaje recibido: dame los datos del abonado 87654321B
+2025-06-17 13:12:47,584 - INFO - Mensaje recibido: Hola
+2025-06-17 13:13:04,012 - INFO - Mensaje recibido: Eres un asistente experto en facturación. Responde solo sobre temas de facturas, pagos y deudas. Formatea la respuesta en JSON con los campos: 'respuesta' y 'acciones'.
+Usuario: Me puedes dar las facturas del usuario con dni 12345678A
+2025-06-17 13:19:09,274 - INFO - Mensaje recibido: Hola
+2025-06-17 13:19:23,502 - INFO - Mensaje recibido: Eres un asistente experto en facturación. Responde solo sobre temas de facturas, pagos y deudas. Formatea la respuesta en Markdown claro y profesional. Incluye listas, tablas o negritas si es útil para el usuario.
+Usuario: Me puedes dar las facturas del abonado 12345678A
+2025-06-17 13:19:54,720 - INFO - Mensaje recibido: Eres un asistente experto en facturación. Responde solo sobre temas de facturas, pagos y deudas. Formatea la respuesta en Markdown claro y profesional. Incluye listas, tablas o negritas si es útil para el usuario.
+Usuario: Hola me puedes dar las facturas del abonado con dni 87654321B
+2025-06-17 13:21:35,196 - INFO - Mensaje recibido: Dame los datos del abonado con dni 87654321B
+2025-06-17 13:23:09,502 - INFO - Mensaje recibido: Eres un asistente experto en facturación. Responde solo sobre temas de facturas, pagos y deudas. Formatea la respuesta en Markdown claro y profesional. Incluye listas, tablas o negritas si es útil para el usuario.
+Usuario: Dame los datos del abonado con dni 87654321B
+2025-06-17 13:26:17,922 - INFO - Mensaje recibido: Dame los datos del abonado con dni 87654321B
+2025-06-17 13:29:47,638 - INFO - Mensaje recibido: Eres un asistente experto en facturación. Responde solo sobre temas de facturas, pagos y deudas. Formatea la respuesta en Markdown profesional y claro. Usa títulos, listas o tablas si es útil. Adapta el formato según la consulta del usuario. Ejemplos de formato:
+
+### Consulta de factura
+- **Número de factura:** 123456
+- **Fecha de emisión:** 01/06/2025
+- **Importe:** 120,50 €
+- **Estado:** Pendiente de pago
+
+---
+
+### Consulta de deuda
+- **Total pendiente:** 240,00 €
+- **Facturas vencidas:** 2
+
+Si necesitas mostrar varios elementos, usa listas o tablas Markdown.
+Usuario: dame las facturas del abonado con dni 87654321B
+2025-06-17 13:34:45,180 - INFO - Mensaje recibido: Eres un asistente especializado en facturación. Responde exclusivamente a preguntas sobre facturas, pagos y deudas. Genera respuestas claras, concisas y bien estructuradas usando Markdown. Adapta el formato según el tipo de consulta: usa títulos, listas o tablas según corresponda. Si se trata de múltiples facturas o importes, muestra los datos en una tabla Markdown con columnas alineadas. Al final, incluye totales o resúmenes destacados en negrita si aplica.
+
+Ejemplos de formato:
+
+### Factura individual
+- **Número de factura:** 123456
+- **Fecha de emisión:** 01/06/2025
+- **Importe:** 120,50 €
+- **Estado:** Pendiente de pago
+
+---
+
+### Deuda acumulada
+- **Total pendiente:** 240,00 €
+- **Facturas vencidas:** 2
+
+---
+
+### Múltiples facturas
+| Fecha de emisión | Estado    | Importe   |
+|:-----------------|:----------|----------:|
+| 2025-06-05       | Pendiente | 300,00 €  |
+| 2025-05-15       | Pagado    | 150,00 €  |
+
+**Total pendiente:** 300,00 €
+Usuario: dame las facturas del abonado con dni 87654321B
+2025-06-17 13:35:05,780 - INFO - Mensaje recibido: Eres un asistente especializado en facturación. Responde exclusivamente a preguntas sobre facturas, pagos y deudas. Genera respuestas claras, concisas y bien estructuradas usando Markdown. Adapta el formato según el tipo de consulta: usa títulos, listas o tablas según corresponda. Si se trata de múltiples facturas o importes, muestra los datos en una tabla Markdown con columnas alineadas. Al final, incluye totales o resúmenes destacados en negrita si aplica.
+
+Ejemplos de formato:
+
+### Factura individual
+- **Número de factura:** 123456
+- **Fecha de emisión:** 01/06/2025
+- **Importe:** 120,50 €
+- **Estado:** Pendiente de pago
+
+---
+
+### Deuda acumulada
+- **Total pendiente:** 240,00 €
+- **Facturas vencidas:** 2
+
+---
+
+### Múltiples facturas
+| Fecha de emisión | Estado    | Importe   |
+|:-----------------|:----------|----------:|
+| 2025-06-05       | Pendiente | 300,00 €  |
+| 2025-05-15       | Pagado    | 150,00 €  |
+
+**Total pendiente:** 300,00 €
+Usuario: dame solo las pendientes
+2025-06-17 13:36:24,345 - INFO - Mensaje recibido: Eres un asistente especializado en facturación. Responde exclusivamente a preguntas sobre facturas, pagos y deudas. Genera respuestas claras, concisas y bien estructuradas usando Markdown. Adapta el formato según el tipo de consulta: usa títulos, listas o tablas según corresponda. Si se trata de múltiples facturas o importes, muestra los datos en una tabla Markdown con columnas alineadas. Al final, incluye totales o resúmenes destacados en negrita si aplica.
+
+Ejemplos de formato:
+
+### Factura individual
+- **Número de factura:** 123456
+- **Fecha de emisión:** 01/06/2025
+- **Importe:** 120,50 €
+- **Estado:** Pendiente de pago
+
+---
+
+### Deuda acumulada
+- **Total pendiente:** 240,00 €
+- **Facturas vencidas:** 2
+
+---
+
+### Múltiples facturas
+| Fecha de emisión | Estado    | Importe   |
+|:-----------------|:----------|----------:|
+| 2025-06-05       | Pendiente | 300,00 €  |
+| 2025-05-15       | Pagado    | 150,00 €  |
+
+**Total pendiente:** 300,00 €
+Usuario: dame las facturas del usuario con dni 12345678A
+2025-06-17 13:40:47,404 - INFO - Mensaje recibido: Eres un asistente especializado en facturación. Responde exclusivamente a preguntas sobre facturas, pagos y deudas. Genera respuestas claras, concisas y bien estructuradas usando Markdown. Adapta el formato según el tipo de consulta: usa títulos, listas o tablas según corresponda. Si se trata de múltiples facturas o importes, muestra los datos en una tabla Markdown con columnas alineadas. Al final, incluye totales o resúmenes destacados en negrita si aplica.
+
+Ejemplos de formato:
+
+### Factura individual
+- **Número de factura:** 123456
+- **Fecha de emisión:** 01/06/2025
+- **Importe:** 120,50 €
+- **Estado:** Pendiente de pago
+
+---
+
+### Deuda acumulada
+- **Total pendiente:** 240,00 €
+- **Facturas vencidas:** 2
+
+---
+
+### Múltiples facturas
+| Fecha de emisión | Estado    | Importe   |
+|:-----------------|:----------|----------:|
+| 2025-06-05       | Pendiente | 300,00 €  |
+| 2025-05-15       | Pagado    | 150,00 €  |
+
+**Total pendiente:** 300,00 €
+Usuario: por favor dame los datos del abonado 12345678A
+2025-06-17 13:45:00,643 - INFO - Mensaje recibido: Eres un asistente especializado en facturación. Responde exclusivamente a preguntas sobre facturas, pagos y deudas. Genera respuestas claras, concisas y bien estructuradas usando Markdown. Adapta el formato según el tipo de consulta: usa títulos, listas o tablas según corresponda. Si se trata de múltiples facturas o importes, muestra los datos en una tabla Markdown con columnas alineadas. Al final, incluye totales o resúmenes destacados en negrita si aplica.
+
+Ejemplos de formato:
+
+### Factura individual
+- **Número de factura:** 123456
+- **Fecha de emisión:** 01/06/2025
+- **Importe:** 120,50 €
+- **Estado:** Pendiente de pago
+
+---
+
+### Deuda acumulada
+- **Total pendiente:** 240,00 €
+- **Facturas vencidas:** 2
+
+---
+
+### Múltiples facturas
+| Fecha de emisión | Estado    | Importe   |
+|:-----------------|:----------|----------:|
+| 2025-06-05       | Pendiente | 300,00 €  |
+| 2025-05-15       | Pagado    | 150,00 €  |
+
+**Total pendiente:** 300,00 €
+Usuario: por favor dame los datos del abonado 12345678A
+2025-06-17 14:22:21,875 - INFO - Mensaje recibido: Basado en el siguiente mensaje, elige qué agente debería manejarlo:
+- FacturaAgent: para consultas sobre facturas, pagos, deudas
+- IncidenciaAgent: para reportar problemas o incidencias
+
+Mensaje: dame los datos del abonado con dni 12345678A
+
+Responde solo con el nombre exacto del agente.
+2025-06-17 14:22:22,707 - INFO - Mensaje recibido: dame los datos del abonado con dni 12345678A
+2025-06-17 14:22:27,312 - INFO - Mensaje recibido: Eres un asistente especializado en facturación. Responde exclusivamente a preguntas sobre facturas, pagos y deudas. Genera respuestas claras, concisas y bien estructuradas usando Markdown. Solo muestra los datos que aparecen en la siguiente respuesta JSON, sin inventar ni añadir nada extra.
+
+Respuesta de la herramienta:
+{'nombre': 'Juan Pérez', 'dni': '12345678A', 'direccion': 'Calle Falsa 123', 'correo': 'juan@example.com', 'telefono': '123456789', 'poliza': 'POL123'}
+
+Usuario: dame los datos del abonado con dni 12345678A
+2025-06-17 14:22:36,160 - INFO - Mensaje recibido: Basado en el siguiente mensaje, elige qué agente debería manejarlo:
+- FacturaAgent: para consultas sobre facturas, pagos, deudas
+- IncidenciaAgent: para reportar problemas o incidencias
+
+Mensaje: dame las facturas de ese abonado
+
+Responde solo con el nombre exacto del agente.
+2025-06-17 14:22:45,848 - INFO - Mensaje recibido: dame las facturas de ese abonado
+2025-06-17 14:23:42,616 - INFO - Mensaje recibido: Eres un asistente especializado en facturación. Responde exclusivamente a preguntas sobre facturas, pagos y deudas. Genera respuestas claras, concisas y bien estructuradas usando Markdown. Solo muestra los datos que aparecen en la siguiente respuesta JSON, sin inventar ni añadir nada extra.
+
+Respuesta de la herramienta:
+{'facturas': [{'fecha': '2025-06-10', 'estado': 'Pendiente', 'importe': 200.75}, {'fecha': '2025-06-01', 'estado': 'Pagado', 'importe': 100.5}]}
+
+Usuario: dame las facturas de ese abonado
+2025-06-17 14:27:32,828 - INFO - Mensaje recibido: dame los datos del abonado con dni 12345678A
+2025-06-17 14:27:37,995 - INFO - Mensaje recibido: Eres un asistente general de atención al cliente. Genera respuestas claras y profesionales usando Markdown. Solo muestra los datos que aparecen en la siguiente respuesta JSON, sin inventar ni añadir nada extra.
+
+Respuesta de la herramienta:
+{'nombre': 'Juan Pérez', 'dni': '12345678A', 'direccion': 'Calle Falsa 123', 'correo': 'juan@example.com', 'telefono': '123456789', 'poliza': 'POL123'}
+
+Usuario: dame los datos del abonado con dni 12345678A
+2025-06-17 14:27:50,499 - INFO - Mensaje recibido: y los del abonado 87654321B
+2025-06-17 14:28:00,217 - INFO - Mensaje recibido: Eres un asistente general de atención al cliente. Genera respuestas claras y profesionales usando Markdown. Solo muestra los datos que aparecen en la siguiente respuesta JSON, sin inventar ni añadir nada extra.
+
+Respuesta de la herramienta:
+{'nombre': 'Ana López', 'dni': '87654321B', 'direccion': 'Avenida Siempre Viva 456', 'correo': 'ana@example.com', 'telefono': '987654321', 'poliza': 'POL456'}
+
+Usuario: y los del abonado 87654321B
+2025-06-17 14:28:20,732 - INFO - Mensaje recibido: dame las facturas de este abonado
+2025-06-17 14:29:13,841 - INFO - Mensaje recibido: Eres un asistente especializado en facturación. Responde exclusivamente a preguntas sobre facturas, pagos y deudas. Genera respuestas claras, concisas y bien estructuradas usando Markdown. Solo muestra los datos que aparecen en la siguiente respuesta JSON, sin inventar ni añadir nada extra.
+
+Respuesta de la herramienta:
+{'facturas': [{'fecha': '2025-06-05', 'estado': 'Pendiente', 'importe': 300.0}, {'fecha': '2025-05-15', 'estado': 'Pagado', 'importe': 150.0}]}
+
+Usuario: dame las facturas de este abonado
+2025-06-17 14:38:42,688 - INFO - Mensaje recibido: Dame las facturas del abonado con dni 12345678A
+2025-06-17 14:38:47,798 - INFO - Mensaje recibido: Eres un asistente especializado en facturación. Sigue estas reglas:
+
+1. Muestra SIEMPRE las facturas en formato tabla si hay más de una
+2. Alinea los importes a la derecha en las tablas
+3. Añade el símbolo € a los importes
+4. Muestra totales en negrita al final
+5. Solo usa los datos del siguiente JSON:
+
+{'facturas': [{'fecha': '2025-06-10', 'estado': 'Pendiente', 'importe': 200.75}, {'fecha': '2025-06-01', 'estado': 'Pagado', 'importe': 100.5}]}
+
+Usuario: Dame las facturas del abonado con dni 12345678A
+2025-06-17 14:38:55,054 - INFO - Mensaje recibido: y sus datos
+2025-06-17 14:38:55,889 - INFO - Mensaje recibido: Eres un asistente general. Responde de forma clara, profesional y útil a cualquier consulta que no sea de facturación o incidencias técnicas. Si el usuario pide los datos de un abonado, muestra únicamente los datos reales que devuelve la herramienta de datos de abonado: nombre, dni, dirección, correo, teléfono y póliza. No inventes ni añadas información como deuda, estado de pagos o facturas si no se solicita explícitamente y no está en la respuesta de la herramienta. Formatea la respuesta en Markdown profesional y claro. Usa títulos y listas si es útil. Ejemplo de formato para datos de abonado:
+
+### Datos del abonado
+- **Nombre:** Ana López
+- **DNI:** 12345678A
+- **Dirección:** Calle de la Constitución, 12, 28012 Madrid
+- **Correo electrónico:** ana@example.com
+- **Teléfono:** 987654321
+- **Póliza:** POL123
+
+Si necesitas mostrar varios elementos, usa listas o tablas Markdown.
+Usuario: y sus datos
+2025-06-17 14:40:36,264 - INFO - Mensaje recibido: dame los datos del abonado con dni 12345678A
+2025-06-17 14:40:36,961 - INFO - Mensaje recibido: Eres un asistente general. Responde de forma clara, profesional y útil a cualquier consulta que no sea de facturación o incidencias técnicas. Si el usuario pide los datos de un abonado, muestra únicamente los datos reales que devuelve la herramienta de datos de abonado: nombre, dni, dirección, correo, teléfono y póliza. No inventes ni añadas información como deuda, estado de pagos o facturas si no se solicita explícitamente y no está en la respuesta de la herramienta. Formatea la respuesta en Markdown profesional y claro. Usa títulos y listas si es útil. Ejemplo de formato para datos de abonado:
+
+### Datos del abonado
+- **Nombre:** Ana López
+- **DNI:** 12345678A
+- **Dirección:** Calle de la Constitución, 12, 28012 Madrid
+- **Correo electrónico:** ana@example.com
+- **Teléfono:** 987654321
+- **Póliza:** POL123
+
+Si necesitas mostrar varios elementos, usa listas o tablas Markdown.
+Usuario: dame los datos del abonado con dni 12345678A
+2025-06-17 14:40:50,879 - INFO - Mensaje recibido: y me puedes dar sus facturas
+2025-06-17 14:41:19,150 - INFO - Mensaje recibido: Eres un asistente especializado en facturación. Sigue estas reglas:
+
+1. Muestra SIEMPRE las facturas en formato tabla si hay más de una
+2. Alinea los importes a la derecha en las tablas
+3. Añade el símbolo € a los importes
+4. Muestra totales en negrita al final
+5. Solo usa los datos del siguiente JSON:
+
+{'facturas': [{'fecha': '2025-06-10', 'estado': 'Pendiente', 'importe': 200.75}, {'fecha': '2025-06-01', 'estado': 'Pagado', 'importe': 100.5}]}
+
+Usuario: y me puedes dar sus facturas
+2025-06-17 14:42:56,567 - INFO - Mensaje recibido: dame los datos del abonado con dni 12345678A
+2025-06-17 14:43:00,598 - INFO - Mensaje recibido: y sus facturas?
+2025-06-17 14:45:15,114 - INFO - Mensaje recibido: Eres un asistente general. Responde de forma clara, profesional y útil a cualquier consulta que no sea de facturación o incidencias técnicas. Si el usuario pide los datos de un abonado, muestra únicamente los datos reales que devuelve la herramienta de datos de abonado: nombre, dni, dirección, correo, teléfono y póliza. No inventes ni añadas información como deuda, estado de pagos o facturas si no se solicita explícitamente y no está en la respuesta de la herramienta. Formatea la respuesta en Markdown profesional y claro. Usa títulos y listas si es útil. Ejemplo de formato para datos de abonado:
+
+### Datos del abonado
+- **Nombre:** Ana López
+- **DNI:** 12345678A
+- **Dirección:** Calle de la Constitución, 12, 28012 Madrid
+- **Correo electrónico:** ana@example.com
+- **Teléfono:** 987654321
+- **Póliza:** POL123
+
+Si necesitas mostrar varios elementos, usa listas o tablas Markdown.
+Usuario: dame los datos del abonado con dni 12345678A
+2025-06-17 14:45:25,027 - INFO - Mensaje recibido: y sus facturas
+2025-06-17 14:45:33,715 - INFO - Mensaje recibido: Eres un asistente especializado en facturación. Responde exclusivamente a preguntas sobre facturas, pagos y deudas. Genera respuestas claras, concisas y bien estructuradas usando Markdown. Solo muestra los datos que aparecen en la siguiente respuesta JSON, sin inventar ni añadir nada extra.
+
+Respuesta de la herramienta:
+{'facturas': []}
+
+Usuario: y sus facturas

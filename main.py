@@ -1,12 +1,10 @@
-# main.py
+# main.py o donde uses el router
 
 from app.agent.chat_agent import MultiAgentRouter
 
-router = MultiAgentRouter()
+router = MultiAgentRouter(role="admin")  # Definir el rol
 
 while True:
-    mensaje = input("🧑 > ")
-    if mensaje.lower() in ["salir", "exit", "quit"]:
-        break
-    respuesta = router.handle_message(mensaje)
+    entrada = input("🧑 > ")
+    respuesta = router.handle_message(entrada)
     print("🤖 >", respuesta)
