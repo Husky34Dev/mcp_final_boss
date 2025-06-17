@@ -387,3 +387,12 @@
 2025-06-16 14:21:24,878 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
 2025-06-16 14:21:24,878 - INFO - Retrying request to /openai/v1/chat/completions in 29.000000 seconds
 2025-06-16 14:21:54,664 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-17 10:53:16,780 - INFO - Mensaje recibido: dame todas las facturas del abonado con dni 87654321B
+2025-06-17 10:53:32,374 - INFO - Mensaje recibido: Dame su numero de telefono
+2025-06-17 10:53:43,422 - INFO - Mensaje recibido: Hay incidencias en Madrid?
+2025-06-17 10:53:58,090 - INFO - Mensaje recibido: Las facturas del abonado 12345678A
+2025-06-17 10:54:23,246 - INFO - Mensaje recibido: Dame los datos de este abonado 
+2025-06-17 10:56:59,373 - INFO - Mensaje recibido: Hola
+2025-06-17 10:57:07,812 - INFO - Mensaje recibido: Dame las facturas del abonado con dni 12345678A
+2025-06-17 10:57:29,524 - INFO - Mensaje recibido: Me puedes dar todos los datos de ese abonado?
+2025-06-17 10:58:02,848 - INFO - Mensaje recibido: Hay alguna avería en Madrid?

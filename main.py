@@ -1,17 +1,12 @@
-from app.agent.chat_agent import ChatAgent
+# main.py
 
-def cli_loop():
-    agent = ChatAgent()
-    print("🟢 Agente Groq iniciado (modo consola). Escribe 'salir' para terminar.\n")
+from app.agent.chat_agent import MultiAgentRouter
 
-    while True:
-        user_input = input("🧑 > ").strip()
-        if user_input.lower() in ["salir", "exit", "quit"]:
-            print("👋 Hasta luego.")
-            break
+router = MultiAgentRouter()
 
-        respuesta = agent.handle_message(user_input)
-        print("🤖 >", respuesta)
-
-if __name__ == "__main__":
-    cli_loop()
+while True:
+    mensaje = input("🧑 > ")
+    if mensaje.lower() in ["salir", "exit", "quit"]:
+        break
+    respuesta = router.handle_message(mensaje)
+    print("🤖 >", respuesta)
