@@ -1,32 +1,30 @@
 # app/agent/default_agent.py
 
 import re
+from app.agent.chat_agent import ChatAgent  # Asegúrate de importar ChatAgent desde la ubicación correcta
 
 class DefaultAgent:
     def __init__(self, chat_agent):
-        self.agent = chat_agent
         self.prompt = (
-            "Eres un asistente general. "
-            "Responde de forma clara, profesional y útil a cualquier consulta que no sea de facturación o incidencias técnicas. "
-            "Si el usuario pide los datos de un abonado, muestra únicamente los datos reales que devuelve la herramienta de datos de abonado: nombre, dni, dirección, correo, teléfono y póliza. "
-            "No inventes ni añadas información como deuda, estado de pagos o facturas si no se solicita explícitamente y no está en la respuesta de la herramienta. "
-            "Formatea la respuesta en Markdown profesional y claro. Usa títulos y listas si es útil. "
-            "Ejemplo de formato para datos de abonado:\n\n"
-            "### Datos del abonado\n"
-            "- **Nombre:** Ana López\n"
-            "- **DNI:** 12345678A\n"
-            "- **Dirección:** Calle de la Constitución, 12, 28012 Madrid\n"
-            "- **Correo electrónico:** ana@example.com\n"
-            "- **Teléfono:** 987654321\n"
-            "- **Póliza:** POL123\n\n"
-            "Si necesitas mostrar varios elementos, usa listas o tablas Markdown."
-        )
+            "Eres un asistente general para operadores de una compañía de servicios. "
+            "\n\nREGLAS CRÍTICAS:"
+            "\n1. NUNCA generes o inventes datos. Todos los datos deben venir de las herramientas disponibles."
+            "\n2. SIEMPRE usa una herramienta cuando necesites obtener datos de un abonado, factura o incidencia."
+            "\n3. Si una consulta requiere datos y no puedes obtenerlos, indica que no puedes acceder a esa información."
+            "\n4. Formatea las respuestas en Markdown profesional usando títulos y listas."
+            "\n5. Para datos estructurados, usa el siguiente formato abstracto:"
+            "\n### [Título apropiado]"
+            "\n- **[Campo]:** [Valor de la herramienta]"
+            "\n- **[Campo]:** [Valor de la herramienta]"
+        )        # Reutilizar la instancia de ChatAgent existente y solo actualizar el prompt
+        self.agent = chat_agent
+        # Actualizar el mensaje de sistema en el historial
+        if self.agent.messages_history and self.agent.messages_history[0]["role"] == "system":
+            self.agent.messages_history[0]["content"] = self.prompt
 
     def can_handle(self, message: str) -> bool:
         # Solo maneja preguntas generales o de datos personales, no de facturación ni incidencias
         return not (re.search(r"\b(factura|facturas|pago|pagos|deuda|importe|vencida|vencidas|recibo|recibos)\b", message, re.IGNORECASE) or                    re.search(r"\b(incidencia|avería|averias|reporte|problema|zona|corte|caída|caida|fallo|fallos)\b", message, re.IGNORECASE))
 
     def handle_message(self, message: str) -> str:
-        # El modelo ya tiene acceso al JSON de la herramienta en su contexto de chat
-        mensaje_formateado = f"{self.prompt}\nUsuario: {message}"
-        return self.agent.handle_message(mensaje_formateado)
+        return self.agent.handle_message_with_context(message)[0]

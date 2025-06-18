@@ -2,8 +2,14 @@ import re
 import json
 
 def extract_dni(texto):
-    match = re.search(r"\b\d{8}[A-Z]\b", texto, re.IGNORECASE)
-    return match.group(0) if match else None
+    # Primero buscamos cualquier DNI con letra en mayúscula o minúscula
+    match = re.search(r"\b\d{8}[A-Za-z]\b", texto, re.IGNORECASE)
+    if not match:
+        return None
+    
+    # Si encontramos uno, aseguramos que la letra está en mayúscula
+    dni = match.group(0)
+    return dni[:-1] + dni[-1].upper()
 
 def clean_schema(schema):
     try:
