@@ -703,3 +703,4 @@
 2025-06-19 10:43:21,110 - INFO - POST http://localhost:8000/todas_las_facturas - Status: 200
 2025-06-19 10:43:32,304 - INFO - POST http://localhost:8000/datos_abonado - Status: 200
 2025-06-19 10:43:40,145 - INFO - POST http://localhost:8000/todas_las_facturas - Status: 200
+2025-06-19 10:45:20,350 - INFO - GET http://localhost:8000/openapi.json - Status: 200
