@@ -1,6 +1,6 @@
 import httpx
 import jsonref
-from config import OPENAPI_URL
+from app.config.config import OPENAPI_URL
 from app.utils.utils import clean_schema
 
 def fetch_tools():

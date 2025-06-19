@@ -1,0 +1,122 @@
+import json
+import logging
+from groq import Groq
+from ..utils.handlers_and_tools import fetch_tools, generate_handlers
+from app.utils.formatter import format_tool_response
+from app.utils.conversation_context import ConversationContext
+from app.utils.llm_response_guard import LLMResponseGuard
+
+logging.basicConfig(level=logging.INFO)
+
+class SharedChatAgent:
+    def __init__(self, model: str):
+        self.client = Groq()
+        self.model = model
+        self.tools = fetch_tools()
+        self.handlers = generate_handlers(self.tools)
+        self.messages = []
+        self.context = ConversationContext()  # Contexto conversacional
+        self.response_guard = LLMResponseGuard()  # Validador de respuestas
+
+    def set_system_prompt(self, prompt: str):
+        self.messages = [{"role": "system", "content": prompt}]
+        # self.context.clear()  # No limpiar contexto al cambiar de sistema, para mantener memoria referencial
+
+    def handle_message_with_context(self, user_message: str) -> str:
+        self.context.update(user_message)  # Actualiza el contexto con el mensaje
+        # Si la consulta es referencial y hay un DNI en el contexto, inyecta el bloque generado por el contexto
+        if self.context.get('is_referential') and self.context.get('dni'):
+            self.messages.append({
+                "role": "system",
+                "content": self.context.get_referential_prompt()
+            })
+        self.messages.append({"role": "user", "content": user_message})
+        logging.info(f"User message: {user_message}")
+        logging.info("Sending initial request to LLM with tool_choice='auto'...")
+
+        resp = self.client.chat.completions.create(
+            model=self.model,
+            messages=self.messages,
+            tools=self.tools,
+            tool_choice="auto"
+        )
+        msg = resp.choices[0].message
+        logging.info(f"Received response: {msg}")
+
+        executed_calls = set()
+        retry_limit = 5
+        retry_count = 0
+
+        # Procesar tool_calls y luego solicitar respuesta de texto puro
+        tool_call_executed = False
+        while getattr(msg, "tool_calls", None) and retry_count < retry_limit:
+            new_calls = []
+            for call in msg.tool_calls:
+                fn_name = call.function.name
+                args = json.loads(call.function.arguments)
+                sig = (fn_name, tuple(sorted(args.items())))
+                if sig in executed_calls:
+                    logging.info(f"Detección de llamada repetida: {fn_name} {args}. Rompiendo bucle.")
+                    new_calls = []
+                    break
+                executed_calls.add(sig)
+                new_calls.append((call, args))
+
+            if not new_calls:
+                break
+
+            # Ejecuta cada nueva llamada y añade al historial
+            for call, args in new_calls:
+                logging.info(f"Executing tool: {call.function.name} with args: {args}")
+                try:
+                    result = self.handlers[call.function.name](**args)
+                    logging.info(f"Raw tool response for {call.function.name}: {result}")
+                    formatted_result = format_tool_response(call.function.name, result)
+                    markdown_result = formatted_result  # Devuelve el markdown puro
+                    payload = json.dumps(result, ensure_ascii=False)
+                    tool_call_executed = True
+                except Exception as e:
+                    logging.error(f"Error ejecutando {call.function.name}: {e}")
+                    markdown_result = f"Error ejecutando {call.function.name}: {str(e)}"
+                    payload = json.dumps({"error": str(e)}, ensure_ascii=False)
+
+                self.messages.append({
+                    "role": "tool",
+                    "name": call.function.name,
+                    "content": payload,
+                    "tool_call_id": call.id
+                })
+
+            # Si ejecutamos una tool, devolvemos el markdown directamente y no pedimos integración al LLM
+            if tool_call_executed:
+                final_content = markdown_result.strip()
+                self.messages.append({"role": "assistant", "content": final_content})
+                logging.info("Final response prepared (tool_call only, markdown returned).")
+                logging.info(f"Final Markdown content: {final_content}")
+                return final_content
+
+            retry_count += 1
+            logging.info(f"Sending retry {retry_count}/{retry_limit} for pure text completion...")
+            resp = self.client.chat.completions.create(
+                model=self.model,
+                messages=self.messages,
+                tools=self.tools,
+                tool_choice="none"
+            )
+            msg = resp.choices[0].message
+            logging.info(f"Received response: {msg}")
+
+        if retry_count >= retry_limit:
+            logging.error("Límite de reintentos superado.")
+            raise RuntimeError("Límite de reintentos superado.")
+
+        final_content = msg.content or ""
+        self.messages.append({"role": "assistant", "content": final_content})
+        logging.info(f"Final response prepared: {final_content}")
+
+        # Validar si la respuesta es válida según el guardián
+        error = self.response_guard.validate(user_message, final_content, tool_call_executed)
+        if error:
+            logging.warning(f"Respuesta rechazada por LLMResponseGuard: {error}")
+            return error
+        return final_content
