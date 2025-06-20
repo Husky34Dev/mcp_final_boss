@@ -1,45 +1,58 @@
 """
-ConversationContext: Manejo abstracto y extensible del contexto conversacional.
-Permite almacenar y actualizar información relevante de la conversación (DNI, nombre, tipo de consulta, etc).
+ConversationContext: Manejo del estado de la conversación.
+Mantiene y actualiza el contexto usando el ContextManager centralizado.
 """
 from typing import Dict, Any, Optional
-from app.utils.context_validator import ContextValidator
+from app.config.context_config import context_config
 
 class ConversationContext:
-    def __init__(self, extractors=None):
+    def __init__(self):
         self.data: Dict[str, Any] = {}
-        self.validator = ContextValidator()
-        # Lista de extractores de contexto (puedes añadir más en el futuro)
-        self.extractors = extractors or [self.extract_dni, self.extract_query_type]
+        self._referential_fields = {'query_type', 'dni'}  # Fields that should be inherited in referential queries
 
     def update(self, user_message: str) -> None:
         """
         Actualiza el contexto a partir del mensaje del usuario.
-        Extrae y guarda DNI y tipo de consulta si están presentes.
+        En consultas referenciales, mantiene el contexto anterior para campos clave.
         """
+        # Store previous state for referential handling
+        prev_data = dict(self.data)
+        
+        # Almacena el mensaje y flags de validación básica
         self.data['last_message'] = user_message
-        self.data['requires_real_data'] = self.validator.requires_real_data(user_message)
-        self.data['is_referential'] = self.validator.is_referential_query(user_message)
-        for extractor in self.extractors:
-            extractor(user_message)
-
-    def extract_dni(self, message: str) -> None:
-        import re
-        match = re.search(r"\b\d{8}[A-Za-z]\b", message)
-        if match:
-            self.data['dni'] = match.group(0).upper()
-
-    def extract_query_type(self, message: str) -> None:
-        """
-        Devuelve el tipo de consulta detectado (por ejemplo, 'factura', 'incidencia', 'abonado') o None.
-        """
-        message_lower = message.lower()
-        for tipo, keywords in self.validator.config.query_types.items():
-            if any(kw in message_lower for kw in keywords):
-                self.data['query_type'] = tipo
-                return
-        if "abonado" in message_lower:
-            self.data['query_type'] = "abonado"
+        self.data['requires_real_data'] = context_config.requires_real_data(user_message)
+        self.data['is_referential'] = context_config.is_referential_query(user_message)
+        
+        # Extract query type first
+        new_query_type = context_config.extract_query_type(user_message)
+        
+        # Handle query type inheritance for referential queries
+        if self.data['is_referential']:
+            if new_query_type == 'unknown' and 'query_type' in prev_data:
+                # If referential and no new query type, keep previous
+                self.data['query_type'] = prev_data['query_type']
+            elif new_query_type:
+                # If referential but has new query type, use new one
+                self.data['query_type'] = new_query_type
+            else:
+                # If truly unknown, use unknown
+                self.data['query_type'] = 'unknown'
+        else:
+            # Not referential, just use new query type
+            self.data['query_type'] = new_query_type
+        
+        # Extract all fields defined in the configuration
+        for field_name in context_config.fields:
+            new_value = context_config.extract_field(field_name, user_message)
+            if new_value:
+                # If we found a new value, use it
+                self.data[field_name] = new_value
+            elif self.data.get('is_referential') and field_name in prev_data and field_name in self._referential_fields:
+                # If referential and no new value found, keep old value for inherited fields
+                self.data[field_name] = prev_data[field_name]
+            elif new_query_type and field_name not in context_config.get_required_fields(new_query_type):
+                # Clear fields that aren't required for the current query type
+                self.data.pop(field_name, None)
 
     def get(self, key: str, default: Optional[Any] = None) -> Any:
         return self.data.get(key, default)
@@ -60,3 +73,16 @@ class ConversationContext:
         if self.get('dni'):
             return f"Reference context: The previous DNI used in this conversation is {self.get('dni')}."
         return ""
+
+    def validate_context(self) -> Optional[str]:
+        """
+        Valida el contexto actual usando el ContextManager.
+        Returns:
+            None si el contexto es válido, o un mensaje de error formateado si no lo es.
+        """
+        missing_fields = context_config.validate_context(self.data)
+        if missing_fields:
+            if len(missing_fields) == 1:
+                return f"Falta el campo: {missing_fields[0]}"
+            return f"Faltan los siguientes campos: {', '.join(missing_fields)}"
+        return None

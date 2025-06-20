@@ -3,16 +3,13 @@ Validador de respuestas del LLM para asegurar que no se inventen datos cuando se
 Permite extender reglas y políticas fácilmente.
 """
 from typing import Optional, Dict, Any
-from app.utils.context_validator import ContextValidator
+from app.config.context_config import context_config
 
 class LLMResponseGuard:
     """
     Clase abstracta y extensible para validar respuestas del LLM.
     Se asegura de que, si la consulta requiere datos reales, la respuesta provenga de una herramienta.
     """
-    def __init__(self, context_validator: Optional[ContextValidator] = None):
-        self.context_validator = context_validator or ContextValidator()
-
     def validate(self, user_message: str, llm_response: str, tool_call_executed: bool) -> Optional[str]:
         """
         Valida la respuesta del LLM.
@@ -23,7 +20,7 @@ class LLMResponseGuard:
         Returns:
             None si la respuesta es válida, o un string con el motivo del rechazo si no lo es.
         """
-        if self.context_validator.requires_real_data(user_message) and not tool_call_executed:
+        if context_config.requires_real_data(user_message) and not tool_call_executed:
             return (
                 "La consulta requiere datos reales, pero no se ha consultado la API. "
                 "Por favor, asegúrate de proporcionar un identificador válido (por ejemplo, DNI) "

@@ -3,7 +3,4 @@ fastapi-mcp
 uvicorn
 groq
 jsonref
-streamlit
-streamlit-extras
 python-dotenv
-python-jose

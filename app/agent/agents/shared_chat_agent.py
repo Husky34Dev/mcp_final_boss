@@ -6,7 +6,12 @@ from app.utils.formatter import format_tool_response
 from app.utils.conversation_context import ConversationContext
 from app.utils.llm_response_guard import LLMResponseGuard
 
-logging.basicConfig(level=logging.INFO)
+# Configuración del logger para SharedChatAgent
+logging.basicConfig(
+    filename="chat_agent.log",
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 class SharedChatAgent:
     def __init__(self, model: str):
@@ -23,13 +28,29 @@ class SharedChatAgent:
         # self.context.clear()  # No limpiar contexto al cambiar de sistema, para mantener memoria referencial
 
     def handle_message_with_context(self, user_message: str) -> str:
+        """
+        Procesa un mensaje de usuario manteniendo el contexto de la conversación.
+        
+        Args:
+            user_message: El mensaje del usuario
+            
+        Returns:
+            str: La respuesta del sistema, que puede ser un mensaje de error de validación
+                 o la respuesta del LLM
+        """
         self.context.update(user_message)  # Actualiza el contexto con el mensaje
-        # Si la consulta es referencial y hay un DNI en el contexto, inyecta el bloque generado por el contexto
+        logging.debug(f"Context after update: {self.context.as_dict()}")
+
+        # Validar el contexto para campos requeridos
+        validation_result = self.context.validate_context()
+        if validation_result:
+            logging.warning(f"Missing context fields: {validation_result}")
+            return f"{validation_result}. Por favor, proporcione esta información."        # Si la consulta es referencial y hay un DNI en el contexto, inyecta el bloque generado
         if self.context.get('is_referential') and self.context.get('dni'):
-            self.messages.append({
-                "role": "system",
-                "content": self.context.get_referential_prompt()
-            })
+            referential_prompt = self.context.get_referential_prompt()
+            self.messages.append({"role": "system", "content": referential_prompt})
+            logging.debug(f"Referential prompt injected: {referential_prompt}")
+
         self.messages.append({"role": "user", "content": user_message})
         logging.info(f"User message: {user_message}")
         logging.info("Sending initial request to LLM with tool_choice='auto'...")
@@ -54,6 +75,7 @@ class SharedChatAgent:
             for call in msg.tool_calls:
                 fn_name = call.function.name
                 args = json.loads(call.function.arguments)
+
                 sig = (fn_name, tuple(sorted(args.items())))
                 if sig in executed_calls:
                     logging.info(f"Detección de llamada repetida: {fn_name} {args}. Rompiendo bucle.")
@@ -65,6 +87,7 @@ class SharedChatAgent:
             if not new_calls:
                 break
 
+            markdown_result = ""  # Inicializar para evitar problemas de variable no definida
             # Ejecuta cada nueva llamada y añade al historial
             for call, args in new_calls:
                 logging.info(f"Executing tool: {call.function.name} with args: {args}")

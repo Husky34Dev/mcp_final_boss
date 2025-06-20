@@ -67,10 +67,18 @@ async def deuda_total(dni: str = Body(..., embed=True)):
 @app.post("/facturas_pendientes", operation_id="facturas_pendientes")
 async def facturas_pendientes(dni: str = Body(..., embed=True)):
     result = run_query(
-        "SELECT fecha, importe FROM facturas WHERE dni_abonado = ? AND estado != 'Pagado'",
+        "SELECT fecha, estado, importe FROM facturas WHERE dni_abonado = ? AND estado != 'Pagado'",
         (dni,)
     )
-    return {"facturas": [{"fecha": r[0], "importe": r[1]} for r in result]}
+    return {
+        "facturas": [
+            {
+                "fecha": r[0],
+                "estado": r[1],
+                "importe": r[2]
+            } for r in result
+        ]
+    }
 
 @app.post("/todas_las_facturas", operation_id="todas_las_facturas")
 async def todas_las_facturas(dni: str = Body(..., embed=True)):
@@ -123,24 +131,38 @@ async def crear_incidencia(
     descripcion: str = Body(..., embed=True),
     estado: str = Body("Abierto", embed=True)
 ):
-    abonado_existe = run_query("SELECT 1 FROM abonados WHERE dni = ?", (dni,))
-    if not abonado_existe:
+    # Buscar el usuario_id usando el DNI
+    result = run_query("SELECT id FROM abonados WHERE dni = ?", (dni,))
+    if not result:
         return {"error": "No se encontró un abonado con el DNI proporcionado."}
 
+    usuario_id = result[0][0]
+    
+    # Capitalizar la primera letra de la ubicación
+    ubicacion = ubicacion.strip().capitalize()
+
+    # Insertar la incidencia
     run_query(
-        "INSERT INTO incidencias (ubicacion, descripcion, estado, dni_abonado) VALUES (?, ?, ?, ?)",
-        (ubicacion, descripcion, estado, dni),
+        "INSERT INTO incidencias (usuario_id, ubicacion, descripcion, estado) VALUES (?, ?, ?, ?)",
+        (usuario_id, ubicacion, descripcion, estado),
         commit=True
     )
     return {"message": f"Incidencia creada exitosamente para el abonado con DNI {dni}"}
 
 @app.post("/incidencias_por_dni", operation_id="incidencias_por_dni")
 async def incidencias_por_dni(dni: str = Body(..., embed=True)):
-    result = run_query(
-        "SELECT ubicacion, descripcion, estado FROM incidencias WHERE dni_abonado = ?",
-        (dni,)
+    
+    result = run_query("SELECT id FROM abonados WHERE dni = ?", (dni,))
+    if not result:
+        return {"error": "No se encontró un abonado con el DNI proporcionado."}
+
+    usuario_id = result[0][0]
+
+    incidencias = run_query(
+        "SELECT ubicacion, descripcion, estado FROM incidencias WHERE usuario_id = ?",
+        (usuario_id,)
     )
-    return {"incidencias": [{"ubicacion": r[0], "descripcion": r[1], "estado": r[2]} for r in result]}
+    return {"incidencias": [{"ubicacion": r[0], "descripcion": r[1], "estado": r[2]} for r in incidencias]}
 
 @app.post("/incidencias_por_nombre", operation_id="incidencias_por_nombre")
 async def incidencias_por_nombre(nombre: str = Body(..., embed=True)):
@@ -150,13 +172,38 @@ async def incidencias_por_nombre(nombre: str = Body(..., embed=True)):
     )
     return {"incidencias": [{"ubicacion": r[0], "descripcion": r[1], "estado": r[2]} for r in result]}
 
+@app.post("/actualizar_estado_incidencia", operation_id="actualizar_estado_incidencia")
+async def actualizar_estado_incidencia(
+    incidencia_id: int = Body(..., embed=True),
+    nuevo_estado: str = Body(..., embed=True)
+):
+    # Actualizar el estado de la incidencia
+    result = run_query("SELECT 1 FROM incidencias WHERE id = ?", (incidencia_id,))
+    if not result:
+        return {"error": "No se encontró una incidencia con el ID proporcionado."}
+
+    run_query(
+        "UPDATE incidencias SET estado = ? WHERE id = ?",
+        (nuevo_estado, incidencia_id),
+        commit=True
+    )
+    return {"message": f"Estado de la incidencia {incidencia_id} actualizado a '{nuevo_estado}'"}
+
+@app.post("/incidencias_pendientes", operation_id="incidencias_pendientes")
+async def incidencias_pendientes():
+    # Mostrar solo las incidencias pendientes
+    result = run_query("SELECT ubicacion, descripcion, estado FROM incidencias WHERE estado = 'Pendiente'")
+    return {"incidencias": [{"ubicacion": r[0], "descripcion": r[1], "estado": r[2]} for r in result]}
+
 @app.post("/incidencias_por_ubicacion", operation_id="incidencias_por_ubicacion")
 async def incidencias_por_ubicacion(ubicacion: str = Body(..., embed=True)):
+    # Capitalizar solo la primera letra
+    ubicacion = ubicacion.capitalize()
     result = run_query(
-        "SELECT descripcion, estado FROM incidencias WHERE ubicacion = ?",
+        "SELECT ubicacion, descripcion, estado FROM incidencias WHERE ubicacion = ?",
         (ubicacion,)
     )
-    return {"incidencias": [{"descripcion": r[0], "estado": r[1]} for r in result]}
+    return {"incidencias": [{"ubicacion": r[0], "descripcion": r[1], "estado": r[2]} for r in result]}
 
 @app.get("/herramientas_disponibles", operation_id="herramientas_disponibles")
 async def herramientas_disponibles():
@@ -173,6 +220,8 @@ async def herramientas_disponibles():
             {"endpoint": "/crear_incidencia", "descripcion": "Crea una nueva incidencia para un abonado por DNI."},
             {"endpoint": "/incidencias_por_dni", "descripcion": "Consulta las incidencias asociadas a un abonado por DNI."},
             {"endpoint": "/incidencias_por_nombre", "descripcion": "Consulta las incidencias registradas por nombre de usuario."},
-            {"endpoint": "/incidencias_por_ubicacion", "descripcion": "Consulta todas las incidencias registradas en una ubicación específica."}
+            {"endpoint": "/incidencias_por_ubicacion", "descripcion": "Consulta todas las incidencias registradas en una ubicación específica."},
+            {"endpoint": "/actualizar_estado_incidencia", "descripcion": "Actualiza el estado de una incidencia por ID."},
+            {"endpoint": "/incidencias_pendientes", "descripcion": "Muestra todas las incidencias pendientes."}
         ]
     }
