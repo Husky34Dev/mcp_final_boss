@@ -76,6 +76,11 @@ class SharedChatAgent:
                 fn_name = call.function.name
                 args = json.loads(call.function.arguments)
 
+                # Validar si args es None antes de usarlo
+                if args is None:
+                    logging.error(f"Arguments for function {fn_name} are None. Skipping execution.")
+                    continue
+
                 sig = (fn_name, tuple(sorted(args.items())))
                 if sig in executed_calls:
                     logging.info(f"Detección de llamada repetida: {fn_name} {args}. Rompiendo bucle.")

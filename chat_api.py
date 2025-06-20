@@ -4,12 +4,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from app.agent.multi_agent_router import MultiAgentRouter  # usamos el router multiagente
+from app.config.config import MODEL
 
 app = FastAPI()
 
 # Creamos el router multiagente con rol que queramos admin, facturacion, incidencias o soporte
 # importar el rol desde la base de datos
-agent = MultiAgentRouter(model="llama-3.3-70b-versatile")
+agent = MultiAgentRouter(model=MODEL)
 
 app.add_middleware(
     CORSMiddleware,

@@ -8,7 +8,7 @@ from app.config.context_config import context_config
 class ConversationContext:
     def __init__(self):
         self.data: Dict[str, Any] = {}
-        self._referential_fields = {'query_type', 'dni'}  # Fields that should be inherited in referential queries
+        self._referential_fields = {'query_type', 'dni', 'ubicacion'}  # campos que se heredan en consultas referenciales
 
     def update(self, user_message: str) -> None:
         """
@@ -24,7 +24,7 @@ class ConversationContext:
         self.data['is_referential'] = context_config.is_referential_query(user_message)
         
         # Extract query type first
-        new_query_type = context_config.extract_query_type(user_message)
+        new_query_type = context_config.detect_query_type(user_message)
         
         # Handle query type inheritance for referential queries
         if self.data['is_referential']:

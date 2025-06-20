@@ -71,7 +71,7 @@ class ContextManager:
                     re.compile(r'\b[0-9]{8}[A-Z]\b', re.IGNORECASE),  # DNI español
                     re.compile(r'dni:?\s*([0-9]{8}[A-Z])', re.IGNORECASE)
                 ],
-                required_for=['abonado', 'factura', 'incidencia_creacion', 'incidencia_consulta'],
+                required_for=['abonado', 'factura', 'incidencia_creacion'],  # Eliminado de incidencia_consulta
                 description='DNI del cliente',
                 validation_func=validate_dni
             ),
@@ -273,12 +273,6 @@ class ContextManager:
         
         # Verificar si el tipo de consulta requiere datos reales
         return query_type in self.real_data_required
-
-    def extract_query_type(self, text: str) -> str:
-        """
-        Alias para detect_query_type para mantener compatibilidad con código existente.
-        """
-        return self.detect_query_type(text)
 
 # Crear una instancia global del ContextManager
 context_config = ContextManager()
