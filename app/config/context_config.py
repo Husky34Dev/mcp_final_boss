@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Pattern, Optional, Set, Any
 import re
+import json
 
 @dataclass
 class ContextFieldDefinition:
@@ -19,90 +20,44 @@ class ContextManager:
     """
     
     def __init__(self):
-        # Campos y sus definiciones
-        self.fields: Dict[str, ContextFieldDefinition] = {}
-        
-        # Palabras clave para detectar consultas referenciales
-        self.reference_indicators: Set[str] = {
-            "este", "estos", "sus", "su", "mismo", "anterior", "anteriores",
-            "y ahora", "y los", "y las", "otro", "otra", "y en"
-        }
-        
-        # Tipos de consulta y sus palabras clave
-        self.query_types: Dict[str, Set[str]] = {
-            "factura": {"factura", "pago", "deuda", "recibo", "cobro", "importe"},
-            "incidencia_consulta": {
-                "hay incidencias", "existen incidencias", "mostrar incidencias", 
-                "listar incidencias", "ver incidencias", "muestra mis incidencias",
-                "mis incidencias", "consultar incidencias", "consulta incidencias"
-            },
-            "incidencia_creacion": {"reportar incidencia", "crear incidencia", "registrar incidencia", "nueva incidencia"},
-            "abonado": {"abonado", "datos de abonado", "datos del abonado", "información del abonado"}
-        }
-        
-        # Tipos de consulta que requieren datos reales
-        self.real_data_required: Set[str] = {
-            "factura", 
-            "incidencia_consulta", 
-            "incidencia_creacion", 
-            "abonado"
-        }
-        
-        # Indicadores de que una consulta puede ser respondida sin datos reales
-        self.no_data_indicators: Set[str] = {
-            "cómo", "como", "qué es", "que es", "explica", 
-            "ayuda", "ejemplo", "manual", "instrucciones"
-        }
-        
+        # Cargar configuración desde archivo JSON
+        with open("c:\\projects\\mcp_groq\\app\\config\\query_config.json", "r", encoding="utf-8") as config_file:
+            config = json.load(config_file)
+
+        self.query_types = config["query_types"]
+        self.action_verbs = config["action_verbs"]
+        self.reference_indicators = set(config["reference_indicators"])
+        self.no_data_indicators = set(config["no_data_indicators"])
+        self.real_data_required = set(config["real_data_required"])
+
         self._initialize_fields()
 
     def _initialize_fields(self):
-        """Inicializa la definición de campos y sus patrones"""
-        
+        """Inicializa la definición de campos y sus patrones desde query_config.json"""
+        with open("c:\\projects\\mcp_groq\\app\\config\\query_config.json", "r", encoding="utf-8") as config_file:
+            config = json.load(config_file)
+
+        field_definitions = config.get("field_definitions", {})
+
         def validate_dni(dni: str) -> bool:
             if not dni:
                 return False
-            return bool(re.match(r'^\d{8}[A-Z]$', dni))
-            
-        self.fields = {
-            'dni': ContextFieldDefinition(
-                name='dni',
-                patterns=[
-                    re.compile(r'\b[0-9]{8}[A-Z]\b', re.IGNORECASE),  # DNI español
-                    re.compile(r'dni:?\s*([0-9]{8}[A-Z])', re.IGNORECASE)
-                ],
-                required_for=['abonado', 'factura', 'incidencia_creacion'],  # Eliminado de incidencia_consulta
-                description='DNI del cliente',
-                validation_func=validate_dni
-            ),
-            'ubicacion': ContextFieldDefinition(
-                name='ubicacion',
-                patterns=[
-                    re.compile(r'(?:en|de)\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]+?)(?:\s*(?:,|\.|$|dni|descripci[oó]n))'),
-                    re.compile(r'ubicaci[oó]n:?\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]+?)(?:\s*(?:,|\.|$|dni|descripci[oó]n))')
-                ],
-                required_for=['incidencia_creacion'],  # Solo requerido para creación
-                description='Ubicación para consultas de incidencias'
-            ),
-            'descripcion': ContextFieldDefinition(
-                name='descripcion',
-                patterns=[
-                    re.compile(r'descripci[oó]n:?\s+(.+?)(?:\s*(?:,|\.|$))'),
-                    re.compile(r'(?:[:,]\s*)([^,\.]+?)(?:\s*(?:,|\.|$))')  # Captura texto después de : o , hasta el siguiente separador
-                ],
-                required_for=['incidencia_creacion'],
-                description='Descripción de la incidencia'
-            ),
-            'fecha': ContextFieldDefinition(
-                name='fecha',
-                patterns=[
-                    re.compile(r'\b(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})\b'),
-                    re.compile(r'fecha:?\s+(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})')
-                ],
-                required_for=[],  # Opcional para todos los tipos
-                description='Fecha para filtrar consultas'
+            return bool(re.match(r'^\d{8}[A-Za-z]$', dni))
+
+        self.fields = {}
+        for field_name, field_config in field_definitions.items():
+            patterns = [re.compile(pattern, re.IGNORECASE) for pattern in field_config.get("patterns", [])]
+            required_for = field_config.get("required_for", [])
+            description = field_config.get("description", "")
+            validation_func = validate_dni if field_name == "dni" else None
+
+            self.fields[field_name] = ContextFieldDefinition(
+                name=field_name,
+                patterns=patterns,
+                required_for=required_for,
+                description=description,
+                validation_func=validation_func
             )
-        }
     
     def detect_query_type(self, text: str) -> str:
         """
@@ -110,50 +65,43 @@ class ContextManager:
         """
         text_lower = text.lower()
         words = text_lower.split()
-        
-        # Primero detectar consultas basadas en verbos de acción explícitos
-        action_verbs = {
-            'incidencia_creacion': {'reportar', 'crear', 'registrar', 'abrir', 'nueva'},
-            'incidencia_consulta': {'ver', 'mostrar', 'listar', 'buscar', 'muestra', 'consultar', 'consulta'},
-            'factura': {'pagar', 'abonar', 'facturar', 'cobrar'}
+
+        detection_logic = {
+            "question_starters": self.query_types.get("question_starters", []),
+            "referential_phrases": self.query_types.get("referential_phrases", []),
+            "creation_triggers": self.query_types.get("creation_triggers", []),
         }
-        
-        for query_type, verbs in action_verbs.items():
+
+        # Detectar consultas basadas en verbos de acción explícitos
+        for query_type, verbs in self.action_verbs.items():
             if any(verb in words for verb in verbs):
                 return query_type
-        
+
         # Detectar consultas basadas en estructura de pregunta
-        if text_lower.startswith(('hay', 'existen', 'cuántas', 'cuantas', 'qué', 'que', 'lista', 'listar', 'muestra', 'mostrar')):
-            if 'incidencia' in text_lower:
+        question_starters = detection_logic.get("question_starters", [])
+        if any(text_lower.startswith(starter) for starter in question_starters):
+            if "incidencia" in text_lower:
                 return "incidencia_consulta"
-            if any(word in text_lower for word in ['factura', 'pago', 'deuda']):
+            if any(word in text_lower for word in self.query_types.get("factura", [])):
                 return "factura"
-        
-        # Detectar consultas por DNI o por abonado
-        if 'incidencia' in text_lower or 'incidencias' in text_lower:
-            # Si es una consulta por DNI o abonado, es una consulta no creación
-            if any(phrase in text_lower for phrase in [
-                'del abonado', 'de abonado', 'del dni', 'con dni', 'por dni',
-                'asociadas al', 'asociadas a', 'relacionadas con'
-            ]):
-                return "incidencia_consulta"
-            
-            # Si tiene indicadores explícitos de creación
-            if any(word in text_lower for word in ['tengo', 'quiero reportar', 'quiero crear', 'hay que', 'necesito crear']):
-                return "incidencia_creacion"
-            
-            # Si tiene una descripción después de dos puntos o con un "porque", es probablemente creación
-            if ':' in text or 'porque' in text_lower or 'ya que' in text_lower:
-                return "incidencia_creacion"
-                
-            # Por defecto, si no hay indicadores claros, asumir consulta
+
+        # Detectar consultas por frases referenciales
+        referential_phrases = detection_logic.get("referential_phrases", [])
+        if any(phrase in text_lower for phrase in referential_phrases):
             return "incidencia_consulta"
-            
-        # Inferir por presencia de palabras clave en cualquier parte
+
+        creation_triggers = detection_logic.get("creation_triggers", [])
+        if any(word in text_lower for word in creation_triggers):
+            return "incidencia_creacion"
+
+        if ":" in text or "porque" in text_lower or "ya que" in text_lower:
+            return "incidencia_creacion"
+
+        # Detectar consultas basadas en palabras clave
         for query_type, keywords in self.query_types.items():
             if any(keyword in text_lower for keyword in keywords):
                 return query_type
-                
+
         return "unknown"
         
     def get_required_fields(self, query_type: str) -> List[str]:
@@ -239,16 +187,15 @@ class ContextManager:
     def is_referential_query(self, text: str) -> bool:
         """
         Determina si una consulta hace referencia a contexto anterior.
-        
-        Args:
-            text: El mensaje del usuario
-            
-        Returns:
-            True si la consulta es referencial (usa pronombres o referencias a contexto anterior),
-            False si es una consulta independiente
         """
         text_lower = text.lower()
-        
+        # Si se especifica un DNI explícito, no es referencial
+        if re.search(r"\b[0-9]{8}[A-Z]\b", text):
+            return False
+        # Si solicita 'otro' o 'otra' entidad (no temporal 'otra vez'), no es consulta referencial
+        non_ref = re.search(r"\botro\s+\w+", text_lower) or re.search(r"\botra\s+\w+", text_lower)
+        if non_ref and 'otra vez' not in text_lower:
+            return False
         # Verifica si el texto contiene alguno de los indicadores de referencia
         return any(indicator in text_lower for indicator in self.reference_indicators)
 

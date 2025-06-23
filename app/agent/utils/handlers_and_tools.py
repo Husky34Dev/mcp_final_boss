@@ -13,6 +13,10 @@ def fetch_tools():
     r = httpx.get(OPENAPI_URL)
     r.raise_for_status()
     spec = jsonref.JsonRef.replace_refs(r.json())
+    print("Spec structure:", spec)  # Debug statement to print the structure of the spec object
+    print("Raw JSON response:", r.json())  # Debug statement to print the raw JSON response
+    print("Spec type:", type(spec))  # Debug statement to check the type of spec
+    print("Spec content:", spec)  # Debug statement to inspect the content of spec
 
     tools = []
     for path, methods in spec.get("paths", {}).items():
@@ -27,14 +31,14 @@ def fetch_tools():
                   .get("schema", {})
             )
             parameters = clean_schema(schema)
+            description = op.get("description")
+            if not description:
+                description = f"Esta herramienta realiza la operación '{operation_id}' en el endpoint '{path}' usando el método '{method.upper()}.'"
             tools.append({
                 "type": "function",
                 "function": {
                     "name": operation_id,
-                    "description": op.get(
-                        "description",
-                        f"Herramienta para {operation_id}"
-                    ),
+                    "description": description,
                     "parameters": parameters
                 },
                 "endpoint": path,

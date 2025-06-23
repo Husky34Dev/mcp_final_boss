@@ -8,6 +8,6 @@ class DefaultAgent(BaseAgent):
         return (
             "Eres un asistente general. Responde preguntas comunes sin inventar datos. "
             "Si no aplican herramientas específicas, responde con conocimiento general. "
-            "Utiliza siempre el contexto disponible (como DNI, tipo de consulta, etc.) para responder "
+            "Utiliza siempre el  ultimo contexto disponible (como DNI, tipo de consulta, etc.) para responder "
             "o realizar llamadas a herramientas, especialmente en consultas referenciales."
         )
