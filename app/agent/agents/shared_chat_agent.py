@@ -73,12 +73,6 @@ class SharedChatAgent:
                 for field, message in validation_result.items():
                     return message
 
-            # Si la consulta es referencial y hay un DNI en el contexto, inyecta el bloque generado
-            if self.context.get('is_referential') and self.context.get('dni'):
-                referential_prompt = self.context.get_referential_prompt()
-                self.messages.append({"role": "system", "content": referential_prompt})
-                logging.debug(f"Referential prompt injected: {referential_prompt}")
-
             self.messages.append({"role": "user", "content": user_message})
             logging.info(f"User message: {user_message}")
             logging.info("Sending initial request to LLM with tool_choice='auto'...")

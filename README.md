@@ -21,17 +21,19 @@ A robust, modular, and enterprise-ready multi-agent conversational platform powe
 
 ## Project Structure
 
-```
+```bash
 ├── app/
 │   ├── agent/           # Agent logic and multi-agent router
 │   ├── api/             # FastAPI backend endpoints
-│   ├── config/          # Global configuration
+│   ├── config/          # Global configuration (loads JSON into framework)
+│   ├── framework/       # Core context & conversation framework (JSON-driven)
 │   ├── db/              # Demo database (SQLite)
 │   ├── tools/           # OpenAPI tool discovery and definitions
-│   └── utils/           # Utilities: context, validators, formatters
+│   └── utils/           # Utilities: formatters, guards, other helpers
 ├── main.py              # CLI for testing
 ├── chat_api.py          # REST API for frontend/web chat
 ├── index.html           # Demo frontend (web chat)
+├── app/config/query_config.json  # Main JSON config controlling context and queries
 ├── requirements.txt     # Dependencies
 ```
 
