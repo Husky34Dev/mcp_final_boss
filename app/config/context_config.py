@@ -29,6 +29,7 @@ class ContextManager:
         self.reference_indicators = set(config["reference_indicators"])
         self.no_data_indicators = set(config["no_data_indicators"])
         self.real_data_required = set(config["real_data_required"])
+        self.field_rules = config["field_rules"]
 
         self._initialize_fields()
 
@@ -129,28 +130,7 @@ class ContextManager:
                 value = match.group(1) if match.groups() else match.group(0)
                 return value.strip()
         
-        # 2. Si los patrones fallan, usa heurísticas contextuales
-        text_lower = text.lower()
-        if field_name == 'ubicacion':
-            # Para ubicación, busca nombres propios después de preposiciones comunes
-            locations = re.finditer(r'(?:en|de|para|sobre|desde|hacia)\s+([A-Z][a-záéíóúñ]+)', text)
-            for match in locations:
-                return match.group(1)
-                
-            # También busca cualquier palabra capitalizada que no sea inicio de frase
-            locations = re.finditer(r'(?<!\.)\s+([A-Z][a-záéíóúñ]+)', text)
-            for match in locations:
-                return match.group(1)
-                
-        elif field_name == 'descripcion':
-            # Para descripción, si hay dos puntos, toma todo lo que sigue
-            if ':' in text:
-                return text.split(':', 1)[1].strip()
-            # O toma todo después de palabras clave comunes
-            for trigger in ['porque', 'ya que', 'debido a']:
-                if trigger in text_lower:
-                    return text_lower.split(trigger, 1)[1].strip()
-                    
+        # 2. Si los patrones fallan, no inferimos valores para ubicacion ni descripcion
         return None
 
     def validate_context(self, context: dict) -> List[str]:
@@ -220,6 +200,12 @@ class ContextManager:
         
         # Verificar si el tipo de consulta requiere datos reales
         return query_type in self.real_data_required
+
+    def get_field_rules(self, query_type: str) -> Optional[Dict[str, List[str]]]:
+        """
+        Devuelve las reglas de herencia y eliminación de campos para un tipo de consulta.
+        """
+        return self.field_rules.get(query_type, None)
 
 # Crear una instancia global del ContextManager
 context_config = ContextManager()

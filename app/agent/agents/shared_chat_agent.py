@@ -15,7 +15,7 @@ logging.basicConfig(
 )
 
 class SharedChatAgent:
-    def __init__(self, model: str):
+    def __init__(self, model: str, force_tool_usage: bool = False):
         self.client = Groq()
         self.model = model
         self.tools = fetch_tools()
@@ -23,7 +23,9 @@ class SharedChatAgent:
         self.messages = []
         self.context = ConversationContext()  # Contexto conversacional
         self.response_guard = LLMResponseGuard()  # Validador de respuestas
-    
+        # Propiedad para forzar el uso de herramientas
+        self.force_tool_usage = False
+
     def _trim_history(self, max_pairs: int = 3) -> None:
         """
         Mantiene sólo los últimos `max_pairs` de mensajes de usuario y respuestas,
@@ -67,20 +69,11 @@ class SharedChatAgent:
             validation_result = self.context.validate_context()
             if validation_result:
                 logging.warning(f"Missing context fields: {validation_result}")
-                # Manejo específico para DNI faltante
-                if 'dni' in validation_result:
-                    return (
-                        "Perdona, ha habido un fallo: no pude identificar tu DNI. "
-                        "Por favor, reformula tu consulta incluyendo el DNI u otro dato clave."
-                    )
-                # Manejo específico para error de tipo de consulta
-                if 'tipo_consulta' in validation_result:
-                    return (
-                        "No entendí el tipo de consulta. "  
-                        "Por favor, indique si desea consultar facturas, datos del abonado, incidencias u otra información."
-                    )
-                # Mensaje genérico para otros campos faltantes
-                return f"{validation_result}. Por favor, proporcione esta información."        # Si la consulta es referencial y hay un DNI en el contexto, inyecta el bloque generado
+                # Devuelve el primer mensaje de error encontrado
+                for field, message in validation_result.items():
+                    return message
+
+            # Si la consulta es referencial y hay un DNI en el contexto, inyecta el bloque generado
             if self.context.get('is_referential') and self.context.get('dni'):
                 referential_prompt = self.context.get_referential_prompt()
                 self.messages.append({"role": "system", "content": referential_prompt})
@@ -128,7 +121,7 @@ class SharedChatAgent:
                 if not new_calls:
                     break
 
-                markdown_result = ""  # Inicializar para evitar problemas de variable no definida
+                markdown_result = ""  # Inicializar resultado markdown
                 # Ejecuta cada nueva llamada y añade al historial
                 for call, args in new_calls:
                     logging.info(f"Executing tool: {call.function.name} with args: {args}")
@@ -175,10 +168,9 @@ class SharedChatAgent:
                 logging.error("Límite de reintentos superado.")
                 raise RuntimeError("Límite de reintentos superado.")
 
-            # Manejar inline function call en caso de respuesta de texto con formato <function=...>
+            # Manejar inline function 
             if msg.content:
                 content_str = msg.content.strip()
-                # Match both <function=name>{json}[/function] and <name>{json}</name> patterns
                 inline = re.match(r'<function=(\w+)>(\{.*\})\[/function\]', content_str)
                 if not inline:
                     inline = re.match(r'<(\w+)>(\{.*\})</\1>', content_str)
@@ -186,17 +178,18 @@ class SharedChatAgent:
                     fn_name, args_json = inline.group(1), inline.group(2)
                     try:
                         args = json.loads(args_json)
-                        logging.info(f"Inline function detected: {fn_name} with args {args}")
                         result = self.handlers[fn_name](**args)
                         formatted_result = format_tool_response(fn_name, result).strip()
-                        # Registrar tool call y respuesta
                         self.messages.append({"role": "tool", "name": fn_name, "content": json.dumps(result, ensure_ascii=False)})
                         self.messages.append({"role": "assistant", "content": formatted_result})
-                        logging.info("Final response prepared (inline tool_call only, markdown returned).")
                         self._trim_history()
                         return formatted_result
                     except Exception as e:
                         logging.error(f"Error executing inline function {fn_name}: {e}")
+            # Now enforce tool usage if configured
+            if self.force_tool_usage and not tool_call_executed:
+                raise RuntimeError("Tool usage was enforced but no tool was executed.")
+
             final_content = msg.content or ""
             self.messages.append({"role": "assistant", "content": final_content})
             logging.info(f"Final response prepared: {final_content}")

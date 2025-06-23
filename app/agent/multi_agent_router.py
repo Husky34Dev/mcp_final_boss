@@ -19,13 +19,16 @@ class MultiAgentRouter:
         else:
             query_type = fresh_qt
 
-        # Todas las variantes de incidencia usan el mismo agente
+        # Set `force_tool_usage` for specific agents
         if query_type.startswith('incidencia'):
             agent = IncidenciaAgent()
+            self.shared_agent.force_tool_usage = True
         elif query_type == 'factura':
             agent = FacturaAgent()
+            self.shared_agent.force_tool_usage = True
         else:
-            # Fallback por keywords si query_type no está definido
+            # Default behavior
+            self.shared_agent.force_tool_usage = True
             for ag in self.agents:
                 if ag.can_handle(message):
                     agent = ag

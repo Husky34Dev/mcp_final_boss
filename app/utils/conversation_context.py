@@ -4,6 +4,7 @@ Mantiene y actualiza el contexto usando el ContextManager centralizado.
 """
 from typing import Dict, Any, Optional
 from app.config.context_config import context_config
+import logging
 
 class ConversationContext:
     def __init__(self):
@@ -47,7 +48,7 @@ class ConversationContext:
         required_fields = context_config.get_required_fields(self.data['query_type'])
         for field_name in context_config.fields:
             new_value = context_config.extract_field(field_name, user_message)
-            if new_value:
+            if new_value and new_value.strip():  # Verificar que no sea una cadena vacía
                 # Only set field if it's required for this query type or inherited in referential queries
                 if field_name in required_fields or (self.data['is_referential'] and field_name in self._referential_fields):
                     self.data[field_name] = new_value
@@ -58,6 +59,30 @@ class ConversationContext:
                 # Clear fields that aren't required for the current query type
                 if field_name not in required_fields:
                     self.data.pop(field_name, None)
+        
+        # Log the initial state of the context
+        logging.debug(f"Initial context before applying field rules: {self.data}")
+
+        def should_remove_field(field: str, rules: Dict[str, Any], context: Dict[str, Any], prev_context: Dict[str, Any]) -> bool:
+            """
+            Determina si un campo debe ser eliminado según las reglas y el estado del contexto.
+            """
+            if field == 'dni':
+                # Condicionar eliminación de 'dni'
+                return bool(context.get('is_referential') and field in prev_context and field not in context.get('last_message', ''))
+            return field in rules.get('remove', [])
+
+        # Aplicar reglas de herencia y eliminación según el tipo de consulta
+        field_rules = context_config.get_field_rules(self.data['query_type'])
+        if field_rules:
+            # Eliminar campos según las reglas
+            for field in field_rules.get('remove', []):
+                if should_remove_field(field, field_rules, self.data, prev_data):
+                    self.data.pop(field, None)
+            # Heredar campos según las reglas
+            for field in field_rules.get('inherit', []):
+                if field in prev_data:
+                    self.data[field] = prev_data[field]
 
     def get(self, key: str, default: Optional[Any] = None) -> Any:
         return self.data.get(key, default)
@@ -73,21 +98,37 @@ class ConversationContext:
 
     def get_referential_prompt(self) -> str:
         """
-        Devuelve un bloque de contexto elegante para inyectar en el prompt si la consulta es referencial.
+        Devuelve un bloque de contexto estructurado para inyectar en el prompt si la consulta es referencial.
         """
-        if self.get('dni'):
-            return f"Reference context: The previous DNI used in this conversation is {self.get('dni')}."
+        context_items = []
+        for key, value in self.data.items():
+            if key in self._referential_fields and value:
+                context_items.append(f"- **{key.capitalize()}:** {value}")
+        if context_items:
+            return "### Contexto Referencial\n" + "\n".join(context_items)
         return ""
 
-    def validate_context(self) -> Optional[str]:
+    def validate_context(self) -> Optional[Dict[str, str]]:
         """
         Valida el contexto actual usando el ContextManager.
         Returns:
-            None si el contexto es válido, o un mensaje de error formateado si no lo es.
+            None si el contexto es válido, o un diccionario con los campos faltantes y sus mensajes de error.
         """
         missing_fields = context_config.validate_context(self.data)
         if missing_fields:
-            if len(missing_fields) == 1:
-                return f"Falta el campo: {missing_fields[0]}"
-            return f"Faltan los siguientes campos: {', '.join(missing_fields)}"
+            error_messages = {}
+            for field in missing_fields:
+                if field == 'dni':
+                    error_messages[field] = (
+                        "Perdona, ha habido un fallo: no pude identificar tu DNI. "
+                        "Por favor, reformula tu consulta incluyendo el DNI u otro dato clave."
+                    )
+                elif field == 'tipo_consulta':
+                    error_messages[field] = (
+                        "No entendí el tipo de consulta. "
+                        "Por favor, indique si desea consultar facturas, datos del abonado, incidencias u otra información."
+                    )
+                else:
+                    error_messages[field] = f"{field}. Por favor, proporcione esta información."
+            return error_messages
         return None

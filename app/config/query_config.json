@@ -10,7 +10,7 @@
     "abonado": ["abonado", "datos de abonado", "datos del abonado", "información del abonado", "cliente", "datos"]
   },
   "action_verbs": {
-    "incidencia_creacion": ["reportar", "crear", "registrar", "abrir", "nueva"],
+    "incidencia_creacion": ["reportar", "crear", "registrar", "abrir", "nueva","crea", "nueva incidencia"],
     "incidencia_consulta": ["ver", "mostrar", "listar", "buscar", "muestra", "consultar", "consulta"],
     "factura": ["pagar", "abonar", "facturar", "cobrar"]
   },
@@ -65,6 +65,24 @@
       ],
       "required_for": [],
       "description": "Fecha para filtrar consultas"
+    }
+  },
+  "field_rules": {
+    "incidencia_creacion": {
+      "inherit": [],
+      "remove": ["dni"]
+    },
+    "factura_consulta": {
+      "inherit": ["dni"],
+      "remove": []
+    },
+    "incidencia_consulta": {
+      "inherit": ["dni", "ubicacion"],
+      "remove": []
+    },
+    "abonado": {
+      "inherit": ["dni"],
+      "remove": []
     }
   }
 }
