@@ -5,7 +5,8 @@ import json
 import logging
 from typing import Dict, Any, Callable, Optional
 from .agent import BaseAgent
-from .context import ConfigurableContext
+from .context_manager import FrameworkContextManager
+from .generic_context import GenericConversationContext
 
 
 class SimpleRouter:
@@ -45,8 +46,9 @@ class SimpleRouter:
             self.logger.error(f"No se encontró archivo de configuración: {agents_config_path}")
             agents_config = self._get_default_config()
         
-        # Crear contexto compartido para todos los agentes
-        self.shared_context = ConfigurableContext(context_config_path)
+        # Crear contexto compartido para todos los agentes usando GenericConversationContext
+        cm = FrameworkContextManager(context_config_path)
+        self.shared_context = GenericConversationContext(cm)
         
         # Crear agentes 
         self.agents: Dict[str, BaseAgent] = {}
@@ -58,6 +60,8 @@ class SimpleRouter:
         # Configuración de routing
         self.routing_config = agents_config.get('routing', {})
         self.default_agent = self.routing_config.get('default_agent', 'default')
+        # Track last selected agent for referential fallback
+        self.last_agent_id: Optional[str] = None
         
         self.logger.info(f"Router inicializado con {len(self.agents)} agentes")
     
@@ -115,6 +119,8 @@ class SimpleRouter:
             self.logger.info(f"Dirigiendo mensaje al agente: {agent_id}")
             
             # Procesar mensaje con el agente seleccionado
+            # Actualizar último agente usado
+            self.last_agent_id = agent_id
             return agent.handle_message(message)
             
         except Exception as e:
@@ -125,40 +131,51 @@ class SimpleRouter:
         """
         Selecciona el agente apropiado basado en el mensaje y la configuración.
         
-        Args:
-            message: Mensaje del usuario
-            
-        Returns:
-            str: ID del agente seleccionado
+        Orden de precedencia mejorado:
+        1. Mapeo directo por query_type
+        2. Scoring por keywords 
+        3. Fallback referencial (solo si las anteriores fallan)
+        4. Agente por defecto
         """
         # Obtener tipo de query del contexto
         query_type = self.shared_context.get('query_type', 'generic')
+        self.logger.debug(f"Routing for message: '{message}' with query_type: '{query_type}'")
         
-        # Buscar en configuración de routing
+        # 1. Mapeo directo basado en tipo de query
         query_to_agent = self.routing_config.get('query_type_to_agent', {})
-        
-        # Si hay mapeo directo
         if query_type in query_to_agent:
-            return query_to_agent[query_type]
+            selected = query_to_agent[query_type]
+            self.logger.info(f"Selected agent '{selected}' by direct query_type mapping")
+            return selected
         
-        # Fallback: buscar por keywords en los agentes
+        # 2. Scoring por keywords en mensaje
         message_lower = message.lower()
-        for agent_id, agent in self.agents.items():
-            if agent_id == self.default_agent:
-                continue  # Saltar el agente default en esta búsqueda
-                
-            agent_config = self.agent_configs.get(agent_id, {})
-            keywords = agent_config.get('can_handle_keywords', [])
-            if any(keyword in message_lower for keyword in keywords):
-                return agent_id
+        scores: Dict[str, int] = {}
+        for aid, cfg in self.agent_configs.items():
+            if aid == self.default_agent:
+                continue
+            keywords = cfg.get('can_handle_keywords', []) or []
+            score = sum(message_lower.count(kw.lower()) for kw in keywords)
+            scores[aid] = score
+            
+        self.logger.debug(f"Agent keyword scores: {scores}")
         
-        # Si es referencial y hay fallback configurado
+        # Seleccionar agente con mayor score
+        if scores:
+            best_agent, best_score = max(scores.items(), key=lambda x: x[1])
+            if best_score > 0:
+                self.logger.info(f"Selected agent '{best_agent}' by keyword score: {best_score}")
+                return best_agent
+        
+        # 3. Referential fallback (SOLO si las anteriores no funcionaron)
         if (self.shared_context.get('is_referential') and 
-            self.routing_config.get('referential_fallback', False)):
-            # Mantener el último agente usado (podría implementarse)
-            pass
+            self.routing_config.get('referential_fallback', False) and
+            self.last_agent_id):
+            self.logger.info(f"Using referential fallback to last agent: '{self.last_agent_id}'")
+            return self.last_agent_id
         
-        # Default fallback
+        # 4. Fallback default
+        self.logger.info(f"No matching agent found, using default '{self.default_agent}'")
         return self.default_agent
     
     def _get_default_config(self) -> Dict[str, Any]:

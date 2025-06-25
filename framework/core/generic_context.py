@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from .context_manager import FrameworkContextManager
 import logging
 
@@ -18,9 +18,9 @@ class GenericConversationContext:
         self.data['is_referential'] = self.cm.is_referential(user_message)
         qtype = self.cm.detect_query_type(user_message)
         
-        # tratar consultas referenciales de mismo tipo
-        if not self.data['is_referential'] and prev.get('query_type') == qtype:
-            self.data['is_referential'] = True
+        # ❌ REMOVIDO: Lógica incorrecta que forzaba referencialidad
+        # La detección de referencialidad debe ser SOLO por contenido del mensaje
+        # not por query_type repetido
             
         self.data['query_type'] = qtype
         
@@ -66,8 +66,16 @@ class GenericConversationContext:
         return ""
 
     def validate_context(self) -> Optional[Dict[str, str]]:
-        """Valida el contexto según las reglas configuradas."""
-        missing = self.cm.validate_context(self.data)
-        if missing:
-            return {field: f"Campo {field} requerido" for field in missing}
+        """
+        Valida el contexto según las reglas configuradas.
+        Ahora preserva los mensajes personalizados del ContextManager.
+        """
+        missing_messages = self.cm.validate_context(self.data)
+        if missing_messages:
+            # Crear dict con índices para compatibilidad con agent.py
+            # pero preservando los mensajes personalizados
+            result = {}
+            for i, message in enumerate(missing_messages):
+                result[f"error_{i}"] = message
+            return result
         return None

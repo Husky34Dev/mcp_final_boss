@@ -190,6 +190,24 @@ class OpenAPIToolsCache:
         self._handlers_cache.clear()
         logging.info("Tools cache cleared")
     
+    def clear_expired_cache(self, max_age_hours: int = 24):
+        """
+        Limpia cache expirado para evitar crecimiento ilimitado.
+        
+        Args:
+            max_age_hours: Horas después de las cuales expira el cache
+        """
+        from datetime import datetime, timedelta
+        
+        if not hasattr(self, '_cache_timestamp'):
+            self._cache_timestamp = datetime.now()
+            return
+            
+        if datetime.now() - self._cache_timestamp > timedelta(hours=max_age_hours):
+            self.clear_cache()
+            self._cache_timestamp = datetime.now()
+            logging.info(f"Cache cleared due to age > {max_age_hours} hours")
+    
     def get_stats(self) -> Dict[str, Any]:
         """Obtiene estadísticas del cache"""
         return {

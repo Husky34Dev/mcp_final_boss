@@ -13,8 +13,7 @@ Componentes principales:
 """
 
 from .core.agent import BaseAgent
-from .core.context import ConfigurableContext  
 from .core.router import SimpleRouter
 
 __version__ = "1.0.0"
-__all__ = ["BaseAgent", "ConfigurableContext", "SimpleRouter"]
+__all__ = ["BaseAgent", "SimpleRouter"]

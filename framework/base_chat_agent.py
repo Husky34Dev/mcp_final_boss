@@ -1,4 +1,13 @@
 """
+⚠️ DEPRECATED - ARCHIVO DUPLICADO ⚠️
+
+Este archivo está duplicado con framework/core/agent.py
+Use framework/core/agent.BaseAgent en su lugar.
+
+Este archivo será eliminado en futuras versiones.
+
+---
+
 Agente de chat base genérico y reutilizable.
 Este módulo contiene la lógica core de conversación que es independiente del dominio.
 """
@@ -10,7 +19,7 @@ from groq import Groq
 from framework.tools import format_tool_response
 from framework.tool_executor import ToolExecutor  
 from framework.inline_function_handler import InlineFunctionHandler
-from framework.conversation_context_base import GenericConversationContext
+from framework.core.generic_context import GenericConversationContext
 from framework.llm_response_guard import LLMResponseGuard
 
 
@@ -82,6 +91,19 @@ class BaseChatAgent:
         """Establece el prompt del sistema."""
         self.messages = [{"role": "system", "content": prompt}]
 
+    def _handle_greetings(self, message: str) -> Optional[str]:
+        """
+        Devuelve una respuesta para saludos o despedidas, o None si no aplica.
+        """
+        clean = message.strip().lower()
+        greetings = ['hola', 'buenos días', 'buenos dias', 'buenas tardes', 'buenas noches']
+        farewells = ['adiós', 'adios', 'hasta luego', 'chao', 'chau']
+        if clean in greetings:
+            return "¡Hola! Solo escribe tu pregunta para que pueda ayudarte."
+        if clean in farewells:
+            return "¡Hasta luego! Si necesitas algo más, vuelve cuando quieras."
+        return None
+
     def handle_message_with_context(self, user_message: str) -> str:
         """
         Procesa un mensaje de usuario manteniendo el contexto de la conversación.
@@ -93,12 +115,10 @@ class BaseChatAgent:
             str: La respuesta del sistema, que puede ser un mensaje de error de validación
                  o la respuesta del LLM
         """
-        # Respuestas genéricas para saludos y despedidas
-        clean_msg = user_message.strip().lower()
-        if clean_msg in ['hola', 'buenos días', 'buenos dias', 'buenas tardes', 'buenas noches']:
-            return "¡Hola! Solo escribe tu pregunta para que pueda ayudarte."
-        if clean_msg in ['adiós', 'adios', 'hasta luego', 'chao', 'chau']:
-            return "¡Hasta luego! Si necesitas algo más, vuelve cuando quieras."
+        # Manejo de saludos y despedidas
+        greeting = self._handle_greetings(user_message)
+        if greeting:
+            return greeting
         
         try:
             self.context.update(user_message)
@@ -186,12 +206,6 @@ class BaseChatAgent:
                     self.messages.append({"role": "assistant", "content": inline_result})
                     self._trim_history()
                     return inline_result
-
-            # Validate DNI before tool execution (esto podría ser específico del dominio)
-            if 'dni' in self.context.as_dict():
-                dni = self.context.get('dni')
-                if not re.match(r'^\d{8}[A-Za-z]$', dni):
-                    logging.warning(f"Partial or invalid DNI detected: {dni}. Ensure DNI includes the letter.")
 
             # Enforce tool usage if configured
             if self.force_tool_usage and not tool_call_executed:

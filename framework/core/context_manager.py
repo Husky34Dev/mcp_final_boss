@@ -31,13 +31,16 @@ class FrameworkContextManager:
         self._init_fields(config)
 
     def _init_fields(self, config: Dict):
+        """Inicializa campos con patrones y validaciones desde configuración."""
         definitions = config.get('field_definitions', {})
+        error_messages = config.get('error_messages', {})
+        
         for name, info in definitions.items():
             patterns = [re.compile(p, re.IGNORECASE) for p in info.get('patterns', [])]
-            validation = None
-            if name == 'dni':
-                def check(d): return bool(re.match(r'^\d{8}[A-Za-z]$', d))
-                validation = check
+            
+            # Crear función de validación genérica desde JSON
+            validation = self._create_validation_func(name, info)
+            
             self.fields[name] = FieldDefinition(
                 name=name,
                 patterns=patterns,
@@ -45,6 +48,29 @@ class FrameworkContextManager:
                 description=info.get('description', ''),
                 validation_func=validation
             )
+        
+        # Guardar mensajes de error para uso en validación
+        self.error_messages = error_messages
+
+    def _create_validation_func(self, field_name: str, field_info: Dict):
+        """
+        Crea función de validación desde configuración JSON.
+        Más flexible que hardcodear solo DNI.
+        """
+        validation_pattern = field_info.get('validation_pattern')
+        if validation_pattern:
+            # Validación genérica por regex desde JSON
+            def validate_field(value: str) -> bool:
+                return bool(re.match(validation_pattern, value.strip()))
+            return validate_field
+        
+        # Fallback para compatibilidad: validaciones específicas conocidas
+        if field_name == 'dni':
+            def validate_dni(d: str) -> bool:
+                return bool(re.match(r'^\d{8}[A-Za-z]$', d.strip()))
+            return validate_dni
+            
+        return None
 
     def detect_query_type(self, text: str) -> str:
         text_lower = text.lower()
@@ -60,7 +86,12 @@ class FrameworkContextManager:
         return 'unknown'
 
     def get_required_fields(self, qtype: str) -> List[str]:
-        return [f.name for f in self.fields.values() if qtype in f.required_for]
+        """
+        Obtiene campos requeridos para un tipo de query.
+        Usa field_rules como fuente de verdad.
+        """
+        rules = self.field_rules.get(qtype, {})
+        return rules.get('require', [])
 
     def extract_field(self, name: str, text: str) -> Optional[str]:
         field = self.fields.get(name)
@@ -73,26 +104,55 @@ class FrameworkContextManager:
         return None
 
     def validate_context(self, context: Dict[str, str]) -> List[str]:
+        """
+        Valida contexto y retorna lista de campos con problemas.
+        Ahora usa los mensajes de error configurados en JSON.
+        """
         qtype = context.get('query_type', 'unknown')
         if qtype == 'unknown':
             return ['tipo_consulta']
+            
         missing = []
         for name in self.get_required_fields(qtype):
             val = context.get(name)
             if not val:
-                missing.append(name)
+                # Usar mensaje de error personalizado si está disponible
+                error_msg = self.error_messages.get(name, f"Campo {name} requerido")
+                missing.append(error_msg)
             else:
                 field = self.fields.get(name)
                 if field and field.validation_func and not field.validation_func(val):
-                    missing.append(f"{name} (formato inválido)")
+                    # Mensaje específico para formato inválido
+                    error_msg = self.error_messages.get(
+                        f"{name}_invalid", 
+                        f"{name} (formato inválido)"
+                    )
+                    missing.append(error_msg)
         return missing
 
     def is_referential(self, text: str) -> bool:
-        if re.search(r"\b\d{8}[A-Z]\b", text):
-            return False
+        """
+        Determina si un texto es referencial (se refiere a contexto previo).
+        
+        Un texto es referencial si:
+        1. Contiene indicadores referenciales ("este", "sus", etc.)
+        2. NO contiene datos explícitos nuevos (como DNI completo)
+        
+        Ejemplo:
+        - "¿Cuáles son sus facturas?" → True (referencial)
+        - "Facturas de 12345678A" → False (datos explícitos)
+        - "¿Y las de Barcelona?" → True (referencial)
+        """
         lower = text.lower()
+        
+        # Si contiene indicadores referenciales, es referencial
         if any(ind in lower for ind in self.reference_indicators):
             return True
+            
+        # Si contiene DNI completo, NO es referencial (datos explícitos)
+        if re.search(r"\b\d{8}[A-Za-z]\b", text):
+            return False
+            
         return False
 
     def requires_real_data(self, text: str) -> bool:

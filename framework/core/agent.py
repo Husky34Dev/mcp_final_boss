@@ -297,16 +297,56 @@ class BaseAgent:
             if msg.content:
                 content_str = msg.content.strip()
                 
-                # NUEVO: Detectar si el LLM está simulando tool calls en lugar de usarlas realmente
+                # Detectar si el LLM está simulando tool calls cuando force_tool_usage está activo
                 if self._is_simulating_tool_calls(content_str) and self.force_tool_usage:
-                    logging.warning("🚨 LLM está simulando tool calls - Forzando respuesta con validación de contexto")
+                    logging.warning("🚨 LLM está simulando tool calls - Forzando uso real de herramientas")
                     
-                    # En lugar de retry, forzar una respuesta de error que mencione los datos requeridos
-                    context_data = self.context.as_dict()
-                    dni_contexto = context_data.get('dni')
+                    # Hacer retry genérico con tool_choice required (sin hardcoding de campos específicos)
+                    tool_names = [tool.get('function', {}).get('name', 'unknown') for tool in self.tools]
+                    retry_message = f"IMPORTANTE: Debes usar una de estas herramientas: {', '.join(tool_names)}. No simules, usa herramientas reales."
                     
-                    if dni_contexto and context_data.get('is_referential'):
-                        error_msg = f"No pude procesar tu consulta correctamente. El DNI en contexto es {dni_contexto}. Por favor, reformula tu pregunta."
+                    self.messages.append({"role": "system", "content": retry_message})
+                    
+                    try:
+                        retry_resp = self.client.chat.completions.create(
+                            model=self.model,
+                            messages=self.messages,
+                            tools=self.tools,
+                            tool_choice="required"
+                        )
+                        
+                        retry_msg = retry_resp.choices[0].message
+                        if hasattr(retry_msg, "tool_calls") and retry_msg.tool_calls:
+                            # Procesar tool calls del retry de simulación
+                            for call in retry_msg.tool_calls:
+                                try:
+                                    args = json.loads(call.function.arguments)
+                                    fn_name = call.function.name
+                                    result = self.handlers[fn_name](**args)
+                                    
+                                    from ..tools.configurable_formatter import format_tool_response
+                                    final_content = format_tool_response(fn_name, result)
+                                    
+                                    self.messages.append({"role": "assistant", "content": final_content})
+                                    self._trim_history()
+                                    
+                                    flow_logger.log_tool_execution(fn_name, args, final_content)
+                                    flow_logger.log_final_response(final_content, True)
+                                    
+                                    return final_content
+                                    
+                                except Exception as e:
+                                    logging.error(f"Error en retry de simulación {fn_name}: {e}")
+                                    continue
+                        
+                        # Si llegamos aquí, el retry no funcionó
+                        error_msg = "No pude ejecutar las herramientas necesarias para tu consulta."
+                        flow_logger.log_final_response(error_msg, False)
+                        return error_msg
+                        
+                    except Exception as e:
+                        logging.error(f"Error en retry de simulación: {e}")
+                        error_msg = "Error interno al procesar tu consulta con herramientas."
                         flow_logger.log_final_response(error_msg, False)
                         return error_msg
                 
@@ -334,16 +374,64 @@ class BaseAgent:
                 # Verificar si hay campos faltantes antes de forzar error
                 validation_result = self.context.validate_context()
                 if validation_result:
-                    # Si faltan campos requeridos, devolver mensaje de error en lugar de RuntimeError
-                    for field, message in validation_result.items():
-                        logging.warning(f"Cannot force tool usage due to missing field: {field}")
-                        flow_logger.log_final_response(message, False)
-                        return message
+                    # Si faltan campos requeridos, devolver mensaje de error
+                    first_error_message = next(iter(validation_result.values()))
+                    logging.warning(f"Cannot force tool usage due to validation error: {first_error_message}")
+                    flow_logger.log_final_response(first_error_message, False)
+                    return first_error_message
                 else:
-                    # Solo forzar error si no hay problemas de validación
-                    logging.warning("Tool usage was enforced but no tool was executed")
-                    # En lugar de error, permitir que el LLM responda sin herramientas
-                    # raise RuntimeError("Tool usage was enforced but no tool was executed.")
+                    # Si no hay problemas de validación pero force_tool_usage está activo
+                    logging.warning("Tool usage was enforced but no tool was executed - Making retry with required tools")
+                    
+                    # Crear mensaje directo para forzar uso de herramientas
+                    tool_names = [tool.get('function', {}).get('name', 'unknown') for tool in self.tools]
+                    force_instruction = f"IMPORTANTE: Debes usar una de estas herramientas para responder: {', '.join(tool_names)}. No respondas con texto, usa una herramienta."
+                    
+                    self.messages.append({"role": "system", "content": force_instruction})
+                    
+                    try:
+                        # Retry con tool_choice obligatorio
+                        retry_resp = self.client.chat.completions.create(
+                            model=self.model,
+                            messages=self.messages,
+                            tools=self.tools,
+                            tool_choice="required"
+                        )
+                        
+                        retry_msg = retry_resp.choices[0].message
+                        if hasattr(retry_msg, "tool_calls") and retry_msg.tool_calls:
+                            # Procesar tool calls del retry
+                            for call in retry_msg.tool_calls:
+                                try:
+                                    args = json.loads(call.function.arguments)
+                                    fn_name = call.function.name
+                                    result = self.handlers[fn_name](**args)
+                                    
+                                    from ..tools.configurable_formatter import format_tool_response
+                                    final_content = format_tool_response(fn_name, result)
+                                    
+                                    self.messages.append({"role": "assistant", "content": final_content})
+                                    self._trim_history()
+                                    
+                                    flow_logger.log_tool_execution(fn_name, args, final_content)
+                                    flow_logger.log_final_response(final_content, True)
+                                    
+                                    return final_content
+                                    
+                                except Exception as e:
+                                    logging.error(f"Error ejecutando herramienta en retry: {e}")
+                                    continue
+                        
+                        # Si llegamos aquí, el retry no generó tool calls válidos
+                        error_msg = "No pude ejecutar ninguna herramienta para procesar tu consulta."
+                        flow_logger.log_final_response(error_msg, False)
+                        return error_msg
+                        
+                    except Exception as e:
+                        logging.error(f"Error en retry de herramientas: {e}")
+                        error_msg = f"Error interno al procesar tu consulta: {str(e)}"
+                        flow_logger.log_final_response(error_msg, False)
+                        return error_msg
 
             final_content = msg.content or ""
             self.messages.append({"role": "assistant", "content": final_content})
