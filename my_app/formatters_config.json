@@ -1,0 +1,162 @@
+{
+  "formatters": {
+    "existe_abonado": {
+      "title": "<i class=\"fas fa-check-circle\" style=\"color: #4CAF50;\"></i> Verificación de Abonado",
+      "format_type": "single_item",
+      "data_key": "",
+      "fields": [
+        {"key": "existe", "label": "Existe", "icon": "<i class=\"fas fa-search\"></i>"}
+      ]
+    },
+    "direccion_abonado": {
+      "title": "<i class=\"fas fa-map-marker-alt\" style=\"color: #2196F3;\"></i> Dirección del Abonado",
+      "format_type": "single_item",
+      "data_key": "",
+      "fields": [
+        {"key": "direccion", "label": "Dirección", "icon": "<i class=\"fas fa-map-marker-alt\"></i>"}
+      ]
+    },
+    "estado_pagos": {
+      "title": "<i class=\"fas fa-credit-card\" style=\"color: #FF9800;\"></i> Estados de Pago",
+      "format_type": "list",
+      "data_key": "estados",
+      "item_format": "- **{estado}**",
+      "show_count": true
+    },
+    "ultimo_pago": {
+      "title": "<i class=\"fas fa-dollar-sign\" style=\"color: #4CAF50;\"></i> Último Pago",
+      "format_type": "single_item",
+      "data_key": "ultimo_pago",
+      "fields": [
+        {"key": "fecha", "label": "Fecha", "icon": "<i class=\"fas fa-calendar-alt\"></i>"},
+        {"key": "importe", "label": "Importe", "icon": "<i class=\"fas fa-dollar-sign\"></i>"}
+      ]
+    },
+    "deuda_total": {
+      "title": "<i class=\"fas fa-exclamation-triangle\" style=\"color: #F44336;\"></i> Deuda Total",
+      "format_type": "single_item",
+      "data_key": "",
+      "fields": [
+        {"key": "deuda", "label": "Deuda Total", "icon": "<i class=\"fas fa-money-bill-wave\"></i>"}
+      ]
+    },
+    "facturas_pendientes": {
+      "title": "<i class=\"fas fa-clock\" style=\"color: #FF9800;\"></i> Facturas Pendientes",
+      "format_type": "table",
+      "data_key": "facturas",
+      "empty_message": "No tienes facturas pendientes.",
+      "table_config": {
+        "headers": ["Fecha", "Estado", "Importe"],
+        "columns": ["fecha", "estado", "importe"]
+      },
+      "show_total": {
+        "enabled": true,
+        "column": "importe",
+        "currency": "€"
+      }
+    },
+    "todas_las_facturas": {
+      "title": "<i class=\"fas fa-file-invoice\" style=\"color: #2196F3;\"></i> Todas las Facturas",
+      "format_type": "table",
+      "data_key": "facturas",
+      "empty_message": "No tienes facturas registradas.",
+      "table_config": {
+        "headers": ["Fecha", "Estado", "Importe"],
+        "columns": ["fecha", "estado", "importe"]
+      },
+      "show_total": {
+        "enabled": true,
+        "column": "importe",
+        "currency": "€"
+      }
+    },
+    "datos_abonado": {
+      "title": "<i class=\"fas fa-user\" style=\"color: #4CAF50;\"></i> Datos del Abonado",
+      "format_type": "single_item",
+      "data_key": "",
+      "fields": [
+        {"key": "nombre", "label": "Nombre", "icon": "<i class=\"fas fa-user\"></i>"},
+        {"key": "dni", "label": "DNI", "icon": "<i class=\"fas fa-id-card\"></i>"},
+        {"key": "direccion", "label": "Dirección", "icon": "<i class=\"fas fa-map-marker-alt\"></i>"},
+        {"key": "correo", "label": "Email", "icon": "<i class=\"fas fa-envelope\"></i>"},
+        {"key": "telefono", "label": "Teléfono", "icon": "<i class=\"fas fa-phone\"></i>"},
+        {"key": "poliza", "label": "Póliza", "icon": "<i class=\"fas fa-file-contract\"></i>"}
+      ]
+    },
+    "crear_incidencia": {
+      "title": "<i class=\"fas fa-check\" style=\"color: #4CAF50;\"></i> Incidencia Creada",
+      "format_type": "success",
+      "message_template": "{message}",
+      "show_details": false
+    },
+    "incidencias_por_dni": {
+      "title": "<i class=\"fas fa-ticket-alt\" style=\"color: #9C27B0;\"></i> Incidencias del Abonado",
+      "format_type": "cards",
+      "data_key": "incidencias",
+      "empty_message": "No tienes incidencias registradas.",
+      "card_config": {
+        "title": "<i class=\"fas fa-map-marker-alt\"></i> {ubicacion}",
+        "fields": [
+          {"key": "estado", "label": "Estado"},
+          {"key": "descripcion", "label": "Descripción"}
+        ]
+      }
+    },
+    "incidencias_por_nombre": {
+      "title": "<i class=\"fas fa-ticket-alt\" style=\"color: #9C27B0;\"></i> Incidencias por Nombre",
+      "format_type": "cards",
+      "data_key": "incidencias",
+      "empty_message": "No se encontraron incidencias para este nombre.",
+      "card_config": {
+        "title": "<i class=\"fas fa-map-marker-alt\"></i> {ubicacion}",
+        "fields": [
+          {"key": "estado", "label": "Estado"},
+          {"key": "descripcion", "label": "Descripción"}
+        ]
+      }
+    },
+    "actualizar_estado_incidencia": {
+      "title": "<i class=\"fas fa-check\" style=\"color: #4CAF50;\"></i> Estado Actualizado",
+      "format_type": "success",
+      "message_template": "{message}",
+      "show_details": false
+    },
+    "incidencias_pendientes": {
+      "title": "<i class=\"fas fa-clock\" style=\"color: #FF9800;\"></i> Incidencias Pendientes",
+      "format_type": "cards",
+      "data_key": "incidencias",
+      "empty_message": "No hay incidencias pendientes.",
+      "card_config": {
+        "title": "<i class=\"fas fa-map-marker-alt\"></i> {ubicacion}",
+        "fields": [
+          {"key": "estado", "label": "Estado"},
+          {"key": "descripcion", "label": "Descripción"}
+        ]
+      }
+    },
+    "incidencias_por_ubicacion": {
+      "title": "<i class=\"fas fa-map-marker-alt\" style=\"color: #2196F3;\"></i> Incidencias por Ubicación",
+      "format_type": "cards",
+      "data_key": "incidencias",
+      "empty_message": "No hay incidencias en esta ubicación.",
+      "card_config": {
+        "title": "<i class=\"fas fa-ticket-alt\"></i> Incidencia",
+        "fields": [
+          {"key": "estado", "label": "Estado"},
+          {"key": "descripcion", "label": "Descripción"}
+        ]
+      }
+    },
+    "herramientas_disponibles": {
+      "title": "<i class=\"fas fa-tools\" style=\"color: #607D8B;\"></i> Herramientas Disponibles",
+      "format_type": "cards",
+      "data_key": "herramientas",
+      "card_config": {
+        "title": "<i class=\"fas fa-wrench\"></i> {endpoint}",
+        "fields": [
+          {"key": "descripcion", "label": "Descripción"}
+        ]
+      }
+    }
+  }
+}

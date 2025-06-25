@@ -1,6 +1,8 @@
 fastapi
-fastapi-mcp
 uvicorn
 groq
 jsonref
 python-dotenv
+httpx
+pydantic
+anyio

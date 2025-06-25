@@ -1,0 +1,1 @@
+# Configuración global del framework

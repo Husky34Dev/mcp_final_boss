@@ -1,0 +1,73 @@
+{
+  "query_types": {
+    "generic": [
+      "hola", "buenos días", "buenas tardes", "buenas noches", "hello", 
+      "hi", "saludos", "que tal", "cómo estás", "ayuda", "help"
+    ],
+    "abonado": [
+      "datos del abonado", "datos de abonado", "información del abonado", 
+      "datos", "abonado", "cliente", "información", "dame los datos"
+    ],
+    "factura": [
+      "factura", "facturas", "pago", "pagos", "deuda", "recibo", "cobro", "importe"
+    ],
+    "incidencia_consulta": [
+      "incidencias", "incidencia", "ver incidencias", "mostrar incidencias", 
+      "consultar incidencias", "mis incidencias"
+    ],
+    "incidencia_creacion": [
+      "crear incidencia", "nueva incidencia", "reportar incidencia", "registrar incidencia"
+    ]
+  },
+  
+  "field_definitions": {
+    "dni": {
+      "patterns": [
+        "\\b([0-9]{8}[A-Za-z])\\b",
+        "dni:?\\s*([0-9]{8}[A-Za-z])",
+        "con dni\\s*([0-9]{8}[A-Za-z])"
+      ]
+    },
+    "ubicacion": {
+      "patterns": [
+        "(?:en|de)\\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\\s]+?)(?:\\s*(?:,|\\.|$|dni|descripci[oó]n))",
+        "ubicaci[oó]n:?\\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\\s]+?)(?:\\s*(?:,|\\.|$))"
+      ]
+    },
+    "descripcion": {
+      "patterns": [
+        "descripci[oó]n:?\\s+(.+?)(?:\\s*(?:,|\\.|$))",
+        "(?:problema|avería|fallo):?\\s+(.+?)(?:\\s*(?:,|\\.|$))"
+      ]
+    }
+  },
+  
+  "field_rules": {
+    "generic": {
+      "require": []
+    },
+    "abonado": {
+      "require": ["dni"]
+    },
+    "factura": {
+      "require": ["dni"]
+    },
+    "incidencia_consulta": {
+      "require": ["dni"]
+    },
+    "incidencia_creacion": {
+      "require": ["dni", "ubicacion", "descripcion"]
+    }
+  },
+  
+  "error_messages": {
+    "dni": "Necesito el DNI para consultar los datos. Por favor, incluye el DNI en tu mensaje (formato: 12345678A).",
+    "ubicacion": "Para crear una incidencia necesito la ubicación. Por favor, especifica dónde ocurre el problema.",
+    "descripcion": "Para crear una incidencia necesito una descripción del problema."
+  },
+  
+  "reference_indicators": [
+    "este", "estos", "sus", "su", "mismo", "anterior", "anteriores",
+    "y ahora", "y los", "y las", "otro", "otra", "y en", "ese", "esa"
+  ]
+}
