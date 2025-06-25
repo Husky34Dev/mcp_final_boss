@@ -4,6 +4,7 @@ Basado en base_chat_agent.py pero con imports limpios y sin dependencias rotas.
 """
 import json
 import logging
+import os
 import re
 from typing import Optional, Dict, Any, List, Callable
 from groq import Groq
@@ -142,8 +143,12 @@ class BaseAgent:
 
     def _create_default_context(self):
         """Crea un contexto por defecto simple."""
-        from .context import SimpleContext
-        return SimpleContext()
+        from .context_manager import SimpleConversationContext
+        # Intentar usar configuración externa, si no existe usar defaults
+        config_path = "my_app/context_config.json"
+        if os.path.exists(config_path):
+            return SimpleConversationContext(config_path)
+        return SimpleConversationContext()
 
     def _trim_history(self, max_pairs: int = 3) -> None:
         """

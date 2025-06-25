@@ -5,8 +5,7 @@ import json
 import logging
 from typing import Dict, Any, Callable, Optional
 from .agent import BaseAgent
-from .context_manager import FrameworkContextManager
-from .generic_context import GenericConversationContext
+from .context_manager import SimpleConversationContext
 
 
 class SimpleRouter:
@@ -46,9 +45,8 @@ class SimpleRouter:
             self.logger.error(f"No se encontró archivo de configuración: {agents_config_path}")
             agents_config = self._get_default_config()
         
-        # Crear contexto compartido para todos los agentes usando GenericConversationContext
-        cm = FrameworkContextManager(context_config_path)
-        self.shared_context = GenericConversationContext(cm)
+        # Crear contexto compartido para todos los agentes
+        self.shared_context = SimpleConversationContext(context_config_path)
         
         # Crear agentes 
         self.agents: Dict[str, BaseAgent] = {}

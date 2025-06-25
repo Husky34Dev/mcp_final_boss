@@ -1,164 +1,157 @@
-import json
+"""
+Contexto conversacional simple y unificado.
+Reemplaza la complejidad de ContextManager + GenericContext.
+"""
 import re
-from dataclasses import dataclass
-from typing import Dict, List, Pattern, Optional, Callable
+import json
+import logging
+from typing import Any, Dict, Optional, List
 
-@dataclass
-class FieldDefinition:
-    name: str
-    patterns: List[Pattern]
-    required_for: List[str]
-    description: str
-    validation_func: Optional[Callable[[str], bool]] = None
 
-class FrameworkContextManager:
+class SimpleConversationContext:
     """
-    Manager centralizado de contexto usando un framework de configuración.
-    Carga la configuración y ofrece métodos de extracción y validación.
+    Contexto conversacional simple que maneja todo en una sola clase.
     """
-    def __init__(self, config_path: str):
-        # Carga configuración desde JSON externo
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-
-        self.query_types = config.get('query_types', {})
-        self.action_verbs = config.get('action_verbs', {})
-        self.reference_indicators = set(config.get('reference_indicators', []))
-        self.no_data_indicators = set(config.get('no_data_indicators', []))
-        self.real_data_required = set(config.get('real_data_required', []))
-        self.field_rules = config.get('field_rules', {})
-        self.fields: Dict[str, FieldDefinition] = {}
-        self._init_fields(config)
-
-    def _init_fields(self, config: Dict):
-        """Inicializa campos con patrones y validaciones desde configuración."""
-        definitions = config.get('field_definitions', {})
-        error_messages = config.get('error_messages', {})
+    
+    def __init__(self, config_path: Optional[str] = None):
+        self.data: Dict[str, Any] = {}
+        self.config = {}
         
-        for name, info in definitions.items():
-            patterns = [re.compile(p, re.IGNORECASE) for p in info.get('patterns', [])]
-            
-            # Crear función de validación genérica desde JSON
-            validation = self._create_validation_func(name, info)
-            
-            self.fields[name] = FieldDefinition(
-                name=name,
-                patterns=patterns,
-                required_for=info.get('required_for', []),
-                description=info.get('description', ''),
-                validation_func=validation
-            )
+        # Cargar configuración si se proporciona
+        if config_path:
+            try:
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    self.config = json.load(f)
+            except Exception as e:
+                logging.warning(f"No se pudo cargar configuración desde {config_path}: {e}")
+                self.config = {}
         
-        # Guardar mensajes de error para uso en validación
-        self.error_messages = error_messages
-
-    def _create_validation_func(self, field_name: str, field_info: Dict):
-        """
-        Crea función de validación desde configuración JSON.
-        Más flexible que hardcodear solo DNI.
-        """
-        validation_pattern = field_info.get('validation_pattern')
-        if validation_pattern:
-            # Validación genérica por regex desde JSON
-            def validate_field(value: str) -> bool:
-                return bool(re.match(validation_pattern, value.strip()))
-            return validate_field
+        # Configuración por defecto
+        self._setup_defaults()
+    
+    def _setup_defaults(self):
+        """Configuración por defecto minimalista si no hay archivo."""
+        if not self.config:
+            self.config = {
+                "real_data_required": [],
+                "no_data_indicators": ["ejemplo", "prueba", "test", "demo", "simulación"],
+                "reference_indicators": ["este", "estos", "sus", "su", "mismo", "anterior", "ese", "esa"],
+                "query_types": {},
+                "field_definitions": {},
+                "field_rules": {},
+                "error_messages": {}
+            }
+    
+    def update(self, user_message: str) -> None:
+        """Actualiza el contexto con un nuevo mensaje."""
+        prev_data = dict(self.data)
         
-        # Fallback para compatibilidad: validaciones específicas conocidas
-        if field_name == 'dni':
-            def validate_dni(d: str) -> bool:
-                return bool(re.match(r'^\d{8}[A-Za-z]$', d.strip()))
-            return validate_dni
-            
-        return None
-
-    def detect_query_type(self, text: str) -> str:
+        self.data['last_message'] = user_message
+        self.data['query_type'] = self._detect_query_type(user_message)
+        self.data['is_referential'] = self._is_referential(user_message)
+        self.data['requires_real_data'] = self._requires_real_data(user_message)
+        
+        # Extraer campos del mensaje
+        self._extract_fields(user_message)
+        
+        # Aplicar reglas de herencia
+        self._apply_inheritance_rules(prev_data)
+    
+    def _detect_query_type(self, text: str) -> str:
+        """Detecta el tipo de consulta basado en palabras clave."""
         text_lower = text.lower()
-        words = text_lower.split()
-        # verificación simplificada usando action_verbs
-        for qtype, verbs in self.action_verbs.items():
-            if any(verb in words for verb in verbs):
+        query_types = self.config.get("query_types", {})
+        
+        for qtype, keywords in query_types.items():
+            if any(keyword in text_lower for keyword in keywords):
                 return qtype
-        # fallback básico
-        for qtype, keywords in self.query_types.items():
-            if any(k in text_lower for k in keywords):
-                return qtype
-        return 'unknown'
-
-    def get_required_fields(self, qtype: str) -> List[str]:
-        """
-        Obtiene campos requeridos para un tipo de query.
-        Usa field_rules como fuente de verdad.
-        """
-        rules = self.field_rules.get(qtype, {})
-        return rules.get('require', [])
-
-    def extract_field(self, name: str, text: str) -> Optional[str]:
-        field = self.fields.get(name)
-        if not field:
-            return None
-        for pat in field.patterns:
-            m = pat.search(text)
-            if m:
-                return (m.group(1) if m.groups() else m.group(0)).strip()
-        return None
-
-    def validate_context(self, context: Dict[str, str]) -> List[str]:
-        """
-        Valida contexto y retorna lista de campos con problemas.
-        Ahora usa los mensajes de error configurados en JSON.
-        """
-        qtype = context.get('query_type', 'unknown')
-        if qtype == 'unknown':
-            return ['tipo_consulta']
-            
-        missing = []
-        for name in self.get_required_fields(qtype):
-            val = context.get(name)
-            if not val:
-                # Usar mensaje de error personalizado si está disponible
-                error_msg = self.error_messages.get(name, f"Campo {name} requerido")
-                missing.append(error_msg)
-            else:
-                field = self.fields.get(name)
-                if field and field.validation_func and not field.validation_func(val):
-                    # Mensaje específico para formato inválido
-                    error_msg = self.error_messages.get(
-                        f"{name}_invalid", 
-                        f"{name} (formato inválido)"
-                    )
-                    missing.append(error_msg)
-        return missing
-
-    def is_referential(self, text: str) -> bool:
-        """
-        Determina si un texto es referencial (se refiere a contexto previo).
         
-        Un texto es referencial si:
-        1. Contiene indicadores referenciales ("este", "sus", etc.)
-        2. NO contiene datos explícitos nuevos (como DNI completo)
+        return "generic"
+    
+    def _is_referential(self, text: str) -> bool:
+        """Detecta si el mensaje hace referencia a contexto anterior."""
+        text_lower = text.lower()
+        indicators = self.config.get("reference_indicators", [])
+        return any(indicator in text_lower for indicator in indicators)
+    
+    def _requires_real_data(self, text: str) -> bool:
+        """Determina si la consulta requiere datos reales."""
+        text_lower = text.lower()
         
-        Ejemplo:
-        - "¿Cuáles son sus facturas?" → True (referencial)
-        - "Facturas de 12345678A" → False (datos explícitos)
-        - "¿Y las de Barcelona?" → True (referencial)
-        """
-        lower = text.lower()
-        
-        # Si contiene indicadores referenciales, es referencial
-        if any(ind in lower for ind in self.reference_indicators):
-            return True
-            
-        # Si contiene DNI completo, NO es referencial (datos explícitos)
-        if re.search(r"\b\d{8}[A-Za-z]\b", text):
+        # Si tiene indicadores de NO datos reales
+        no_data_indicators = self.config.get("no_data_indicators", [])
+        if any(indicator in text_lower for indicator in no_data_indicators):
             return False
+        
+        # Si el tipo de consulta requiere datos reales
+        query_type = self._detect_query_type(text)
+        real_data_required = self.config.get("real_data_required", [])
+        return query_type in real_data_required
+    
+    def _extract_fields(self, text: str) -> None:
+        """Extrae campos del texto usando patrones regex."""
+        field_definitions = self.config.get("field_definitions", {})
+        
+        for field_name, field_config in field_definitions.items():
+            patterns = field_config.get("patterns", [])
             
-        return False
-
-    def requires_real_data(self, text: str) -> bool:
-        if any(ind in text.lower() for ind in self.no_data_indicators):
-            return False
-        return self.detect_query_type(text) in self.real_data_required
-
-    def get_field_rules(self, qtype: str):
-        return self.field_rules.get(qtype)
+            for pattern in patterns:
+                matches = re.findall(pattern, text, re.IGNORECASE)
+                if matches:
+                    # Tomar la primera coincidencia
+                    value = matches[0] if isinstance(matches[0], str) else matches[0][0]
+                    self.data[field_name] = value
+                    break
+    
+    def _apply_inheritance_rules(self, prev_data: Dict[str, Any]) -> None:
+        """Aplica reglas de herencia desde el contexto anterior."""
+        query_type = self.data.get('query_type', '')
+        field_rules = self.config.get("field_rules", {})
+        rules = field_rules.get(query_type, {})
+        
+        # Herencia de campos
+        for field in rules.get('inherit', []):
+            if field in prev_data and field not in self.data:
+                self.data[field] = prev_data[field]
+    
+    def get(self, key: str, default: Any = None) -> Any:
+        """Obtiene un valor del contexto."""
+        return self.data.get(key, default)
+    
+    def as_dict(self) -> Dict[str, Any]:
+        """Retorna el contexto como diccionario."""
+        return dict(self.data)
+    
+    def get_referential_prompt(self) -> str:
+        """Construye prompt de contexto referencial."""
+        if not self.data.get('is_referential'):
+            return ""
+        
+        query_type = self.data.get('query_type', '')
+        field_rules = self.config.get("field_rules", {})
+        rules = field_rules.get(query_type, {})
+        
+        items = []
+        for field in rules.get('inherit', []):
+            if field in self.data and self.data[field] is not None:
+                items.append(f"- **{field.capitalize()}:** {self.data[field]}")
+        
+        if items:
+            return "### Contexto Referencial\n" + "\n".join(items)
+        return ""
+    
+    def validate_context(self) -> Optional[Dict[str, str]]:
+        """Valida que el contexto tenga los campos requeridos."""
+        query_type = self.data.get('query_type', '')
+        field_rules = self.config.get("field_rules", {})
+        rules = field_rules.get(query_type, {})
+        error_messages = self.config.get("error_messages", {})
+        
+        missing_fields = {}
+        
+        for field in rules.get('require', []):
+            if field not in self.data or not self.data[field]:
+                error_msg = error_messages.get(field, f"Falta el campo requerido: {field}")
+                missing_fields[field] = error_msg
+        
+        return missing_fields if missing_fields else None

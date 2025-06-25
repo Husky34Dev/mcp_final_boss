@@ -1,22 +1,44 @@
 # Framework Multi-Agente Configurable
 
-Un framework simple y limpio para crear sistemas multi-agente configurables por JSON.
+## 🎯 **Componentes Principales - ¿Qué Usar?**
 
-## Estructura
+### **1. Agente Base**
+- **✅ `core/agent.py` → `BaseAgent`** - **USA ESTE**
+- ~~`base_chat_agent.py`~~ → **ELIMINADO** (duplicado)
+
+### **2. Sistema de Contexto**
+
+#### **Opción A: Contexto Avanzado (Recomendado)**
+- **`core/generic_context.py`** → `GenericConversationContext`
+- **`core/context_manager.py`** → `FrameworkContextManager`
+- Usa configuración JSON externa (`my_app/context_config.json`)
+- Soporte para referencias y validaciones automáticas
+
+#### **Opción B: Contexto Simple**
+- Contexto básico integrado en `BaseAgent`
+- Para casos simples sin configuración externa
+
+### **3. Herramientas y Utilidades**
+- **`tools/`** → Formateadores y cache OpenAPI
+- **`utils/`** → Validadores, handlers, guardias de respuesta
+
+## Estructura Actualizada
 
 ```
-framework_clean/
+framework/
 ├── core/
-│   ├── agent.py       # Agente base reutilizable
-│   ├── context.py     # Manejo de contexto configurable
-│   └── router.py      # Router simple para dirigir mensajes
+│   ├── agent.py              # ✅ BaseAgent (USA ESTE)
+│   ├── generic_context.py    # Contexto avanzado configurable
+│   ├── context_manager.py    # Manager del contexto
+│   └── router.py            # Router para dirigir mensajes
 ├── tools/
-│   ├── formatter.py   # Formateador de respuestas
-│   └── openapi_cache.py # Cache para herramientas OpenAPI
+│   ├── configurable_formatter.py # Formateador de respuestas
+│   └── openapi_cache.py     # Cache para herramientas OpenAPI
 ├── utils/
-│   ├── response_guard.py # Validador de respuestas
-│   └── function_handler.py # Manejador de funciones inline
-└── example_usage.py   # Ejemplo de uso
+│   ├── response_guard.py    # Validador de respuestas
+│   ├── function_handler.py  # Manejador de funciones inline
+│   └── validator.py         # Validaciones genéricas
+└── README.md               # Esta documentación
 ```
 
 ## Características

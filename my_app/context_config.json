@@ -1,4 +1,13 @@
 {
+  "no_data_indicators": [
+    "ejemplo", "prueba", "test", "demo", "simulación", "ficticio", 
+    "falso", "inventado", "hipotético", "supongamos"
+  ],
+  
+  "real_data_required": [
+    "abonado", "factura", "incidencia_consulta", "incidencia_creacion"
+  ],
+  
   "action_verbs": {
     "incidencia_creacion": ["crear", "reportar", "registrar", "nueva", "nuevo"],
     "incidencia_consulta": ["ver", "mostrar", "consultar", "listar"],

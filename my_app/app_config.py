@@ -11,7 +11,7 @@ de telecomunicaciones, incluyendo:
 """
 import httpx
 import os
-from framework import SimpleRouter
+from framework.core.router import SimpleRouter
 from config.config import OPENAPI_URL, API_BASE_URL, MODEL
 from framework.tools import GLOBAL_TOOLS_CACHE, GLOBAL_FORMATTER, UnifiedFormatter
 
