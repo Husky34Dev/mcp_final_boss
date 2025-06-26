@@ -130,6 +130,8 @@ class BaseAgent:
         
         self.force_tool_usage = force_tool_usage or False
         self.messages = []
+        self._previous_user_id: Optional[str] = None  # Para tracking de cambios de usuario
+        
         # Usar el contexto específico si se proporciona
         self.context = conversation_context or self._create_default_context()
         
@@ -205,7 +207,7 @@ class BaseAgent:
             
             logging.debug(f"Context after update: {context_after}")
 
-            # Validar el contexto para campos requeridos
+            # Validar el contexto para campos requeridos ANTES de continuar
             validation_result = self.context.validate_context()
             if validation_result:
                 logging.warning(f"Missing context fields: {validation_result}")
@@ -216,12 +218,34 @@ class BaseAgent:
                         flow_logger.log_final_response(message, False)
                         return message
 
-            # Construir el mensaje del usuario con contexto referencial si es necesario
+            # Verificar si necesitamos limpiar contexto por cambio de usuario
+            user_id_field = self.context.get_user_identifier_field()
+            current_user_id = self.context.get(user_id_field)
+            if hasattr(self, '_previous_user_id') and current_user_id and self._previous_user_id:
+                if self.context.should_clear_context(current_user_id, self._previous_user_id):
+                    logging.info(f"Detectado cambio de usuario ({self._previous_user_id} -> {current_user_id}). Limpiando contexto.")
+                    preserve_fields = self.context.get_context_preserve_fields()
+                    self.context.clear_user_context(preserve_fields)
+                    # Volver a procesar el contexto después de limpiar
+                    self.context.update(user_message)
+                    context_after = self.context.as_dict().copy()
+            self._previous_user_id = current_user_id
+
+            # Construir el mensaje del usuario con contexto abstracto
             enhanced_message = user_message
+            
+            # Inyectar contexto de forma configurable, no hardcodeada
+            if self.context.should_inject_context():
+                context_prompt = self.context.get_context_injection_prompt()
+                if context_prompt:
+                    enhanced_message = f"{context_prompt}\n\n**Consulta del usuario:** {user_message}"
+                    logging.info(f"Enhanced message with configurable context: {enhanced_message}")
+            
+            # Si también es referencial, agregar el prompt referencial
             if self.context.get('is_referential'):
                 referential_prompt = self.context.get_referential_prompt()
-                if referential_prompt:
-                    enhanced_message = f"{referential_prompt}\\n\\n**Consulta del usuario:** {user_message}"
+                if referential_prompt and "**CONTEXTO ACTUAL DEL USUARIO:**" not in enhanced_message:
+                    enhanced_message = f"{referential_prompt}\n\n**Consulta del usuario:** {user_message}"
                     logging.info(f"Enhanced message with referential context: {enhanced_message}")
 
             self.messages.append({"role": "user", "content": enhanced_message})
@@ -243,8 +267,6 @@ class BaseAgent:
             
             # Registrar tool calls si existen
             if hasattr(msg, "tool_calls") and msg.tool_calls:
-                # NUEVO: Forzar uso del contexto antes de registrar
-                msg.tool_calls = self._force_context_arguments(msg.tool_calls)
                 flow_logger.log_tool_calls(msg.tool_calls)
             else:
                 flow_logger.log_tool_calls(None)
@@ -253,10 +275,20 @@ class BaseAgent:
             retry_limit = 5
             retry_count = 0
 
-            # Procesar tool_calls
+            # Procesar tool_calls con validación previa
             tool_call_executed = False
             
             while hasattr(msg, "tool_calls") and msg.tool_calls and retry_count < retry_limit:
+                # Validar contexto antes de ejecutar tool calls
+                validation_result = self.context.validate_context()
+                if validation_result:
+                    logging.warning(f"Cannot execute tool calls due to missing required fields: {validation_result}")
+                    # Devolver mensaje de error en lugar de ejecutar tool calls incompletos
+                    first_error_message = next(iter(validation_result.values()))
+                    self.messages.append({"role": "assistant", "content": first_error_message})
+                    flow_logger.log_final_response(first_error_message, False)
+                    return first_error_message
+                
                 new_calls = self._prepare_tool_calls(msg.tool_calls, executed_calls)
                 if not new_calls:
                     break
@@ -302,59 +334,6 @@ class BaseAgent:
             if msg.content:
                 content_str = msg.content.strip()
                 
-                # Detectar si el LLM está simulando tool calls cuando force_tool_usage está activo
-                if self._is_simulating_tool_calls(content_str) and self.force_tool_usage:
-                    logging.warning("🚨 LLM está simulando tool calls - Forzando uso real de herramientas")
-                    
-                    # Hacer retry genérico con tool_choice required (sin hardcoding de campos específicos)
-                    tool_names = [tool.get('function', {}).get('name', 'unknown') for tool in self.tools]
-                    retry_message = f"IMPORTANTE: Debes usar una de estas herramientas: {', '.join(tool_names)}. No simules, usa herramientas reales."
-                    
-                    self.messages.append({"role": "system", "content": retry_message})
-                    
-                    try:
-                        retry_resp = self.client.chat.completions.create(
-                            model=self.model,
-                            messages=self.messages,
-                            tools=self.tools,
-                            tool_choice="required"
-                        )
-                        
-                        retry_msg = retry_resp.choices[0].message
-                        if hasattr(retry_msg, "tool_calls") and retry_msg.tool_calls:
-                            # Procesar tool calls del retry de simulación
-                            for call in retry_msg.tool_calls:
-                                try:
-                                    args = json.loads(call.function.arguments)
-                                    fn_name = call.function.name
-                                    result = self.handlers[fn_name](**args)
-                                    
-                                    from ..tools.configurable_formatter import format_tool_response
-                                    final_content = format_tool_response(fn_name, result)
-                                    
-                                    self.messages.append({"role": "assistant", "content": final_content})
-                                    self._trim_history()
-                                    
-                                    flow_logger.log_tool_execution(fn_name, args, final_content)
-                                    flow_logger.log_final_response(final_content, True)
-                                    
-                                    return final_content
-                                    
-                                except Exception as e:
-                                    logging.error(f"Error en retry de simulación {fn_name}: {e}")
-                                    continue
-                        
-                        # Si llegamos aquí, el retry no funcionó
-                        error_msg = "No pude ejecutar las herramientas necesarias para tu consulta."
-                        flow_logger.log_final_response(error_msg, False)
-                        return error_msg
-                        
-                    except Exception as e:
-                        logging.error(f"Error en retry de simulación: {e}")
-                        error_msg = "Error interno al procesar tu consulta con herramientas."
-                        flow_logger.log_final_response(error_msg, False)
-                        return error_msg
-                
                 # Procesar funciones inline normales
                 inline_result = self.function_handler.handle_inline_function(content_str)
                 if inline_result:
@@ -366,13 +345,8 @@ class BaseAgent:
                     
                     return inline_result
 
-            # Validar DNI antes de ejecutar herramientas (solo si está configurado force_tool_usage)
-            if self.force_tool_usage and 'dni' in self.context.as_dict():
-                dni = self.context.get('dni')
-                # Regex corregido para DNI español: 8 dígitos seguidos de una letra
-                if not re.match(r'^\d{8}[A-Za-z]$', dni):
-                    logging.warning(f"Partial or invalid DNI detected: {dni}")
-                    # No forzar error si el DNI no es válido, dejar que el LLM maneje la situación
+            # El contexto ya valida campos automáticamente en validate_context()
+            # No necesitamos validación adicional aquí
 
             # Forzar uso de herramientas si está configurado
             if self.force_tool_usage and not tool_call_executed:
@@ -479,63 +453,3 @@ class BaseAgent:
                 continue
                 
         return new_calls
-
-    def _force_context_arguments(self, tool_calls):
-        """
-        Pre-procesa los tool_calls para forzar el uso del contexto cuando está disponible.
-        Esto evita que el LLM invente argumentos cuando ya tenemos el contexto.
-        """
-        if not tool_calls:
-            return tool_calls
-            
-        # Obtener contexto actual
-        context_data = self.context.as_dict()
-        dni_contexto = context_data.get('dni')
-        is_referential = context_data.get('is_referential', False)
-        
-        if not dni_contexto or not is_referential:
-            # Si no hay DNI en contexto o no es referencial, no modificar
-            return tool_calls
-            
-        # Pre-procesar cada tool_call
-        for call in tool_calls:
-            try:
-                args = json.loads(call.function.arguments)
-                original_args = args.copy()
-                
-                # Si la herramienta necesita DNI y tenemos uno en contexto
-                if 'dni' in args and dni_contexto:
-                    if args['dni'] != dni_contexto:
-                        logging.warning(f"🔧 CONTEXTO FORZADO: Cambiando DNI de '{args['dni']}' a '{dni_contexto}'")
-                        args['dni'] = dni_contexto
-                        # Actualizar los argumentos del tool_call
-                        call.function.arguments = json.dumps(args, ensure_ascii=False)
-                        
-                        # Log para auditoría
-                        flow_logger.logger.info(f"🔧 ARGUMENTOS CORREGIDOS:")
-                        flow_logger.logger.info(f"   - Original: {original_args}")
-                        flow_logger.logger.info(f"   - Corregido: {args}")
-                        
-            except (json.JSONDecodeError, AttributeError) as e:
-                logging.error(f"Error al procesar argumentos del tool_call: {e}")
-                continue
-                
-        return tool_calls
-
-    def _is_simulating_tool_calls(self, content: str) -> bool:
-        """
-        Detecta si el LLM está simulando tool calls en lugar de usarlos realmente.
-        """
-        # Patrones que indican simulación de funciones
-        simulation_patterns = [
-            r'<function=',  # <function=nombre_funcion>
-            r'function\s*=',  # function = nombre
-            r'```.*function.*```',  # bloques de código con función
-            r'\{.*"function".*\}',  # JSON con función simulada
-        ]
-        
-        for pattern in simulation_patterns:
-            if re.search(pattern, content, re.IGNORECASE | re.DOTALL):
-                return True
-                
-        return False

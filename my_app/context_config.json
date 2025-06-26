@@ -9,31 +9,52 @@
   ],
   
   "action_verbs": {
-    "incidencia_creacion": ["crear", "reportar", "registrar", "nueva", "nuevo"],
-    "incidencia_consulta": ["ver", "mostrar", "consultar", "listar"],
-    "factura": ["consultar", "ver", "mostrar", "revisar", "pendientes", "pendiente"],
-    "abonado": ["ver", "mostrar", "consultar", "datos"]
+    "incidencia_creacion": [
+      "crear", "reportar", "registrar", "nueva", "nuevo", "informar",
+      "tengo", "hay", "se rompió", "no funciona", "falla", "fallo", "avería"
+    ],
+    "incidencia_consulta": [
+      "ver incidencias", "mostrar incidencias", "consultar incidencias", 
+      "listar incidencias", "revisar incidencias", "estado incidencias", "cómo van", "mis incidencias"
+    ],
+    "factura": [
+      "consultar", "ver", "mostrar", "revisar", "pendientes", "pendiente",
+      "debo", "adeudo", "pagar", "cuánto", "balance"
+    ],
+    "abonado": [
+      "ver datos", "mostrar datos", "consultar datos", "datos del", "información del",
+      "quién", "soy", "mi cuenta", "mis datos"
+    ]
   },
   
   "query_types": {
     "generic": [
       "hola", "buenos días", "buenas tardes", "buenas noches", "hello", 
-      "hi", "saludos", "que tal", "cómo estás", "ayuda", "help"
+      "hi", "saludos", "que tal", "cómo estás", "ayuda", "help",
+      "adiós", "adios", "hasta luego", "chao", "chau", "gracias"
     ],
     "abonado": [
       "datos del abonado", "datos de abonado", "información del abonado", 
-      "datos", "abonado", "cliente", "información", "dame los datos"
+      "consultar datos", "ver datos", "mostrar datos",
+      "datos", "abonado", "cliente", "información", "dame los datos",
+      "quién soy", "mis datos", "mi información", "mi cuenta"
     ],
     "factura": [
       "factura", "facturas", "pago", "pagos", "deuda", "recibo", "cobro", "importe", 
-      "pendientes", "pendiente", "adeudo", "debe", "vencida", "vencidas"
+      "pendientes", "pendiente", "adeudo", "debe", "vencida", "vencidas",
+      "cuánto debo", "cuanto debo", "mi deuda", "estado de cuenta", "balance",
+      "facturas pendientes", "pagos pendientes", "recibos"
     ],
     "incidencia_consulta": [
       "incidencias", "incidencia", "ver incidencias", "mostrar incidencias", 
-      "consultar incidencias", "mis incidencias"
+      "consultar incidencias", "mis incidencias", "estado de incidencias",
+      "revisar incidencias", "listar incidencias", "problemas reportados",
+      "mis problemas"
     ],
     "incidencia_creacion": [
-      "crear incidencia", "nueva incidencia", "reportar incidencia", "registrar incidencia"
+      "crear incidencia", "nueva incidencia", "reportar incidencia", "registrar incidencia",
+      "tengo un problema", "hay un problema", "no funciona", "se rompió", "avería",
+      "reportar problema", "informar problema", "algo no anda", "falla", "fallo"
     ]
   },
   
@@ -63,23 +84,28 @@
   
   "field_rules": {
     "generic": {
-      "require": []
+      "require": [],
+      "inject_context": []
     },
     "abonado": {
       "require": ["dni"],
-      "inherit": ["dni"]
+      "inherit": ["dni"],
+      "inject_context": ["dni"]
     },
     "factura": {
       "require": ["dni"],
-      "inherit": ["dni"]
+      "inherit": ["dni"],
+      "inject_context": ["dni"]
     },
     "incidencia_consulta": {
       "require": ["dni"],
-      "inherit": ["dni"]
+      "inherit": ["dni"],
+      "inject_context": ["dni"]
     },
     "incidencia_creacion": {
       "require": ["dni", "ubicacion", "descripcion"],
-      "inherit": ["dni"]
+      "inherit": ["dni"],
+      "inject_context": ["dni", "ubicacion", "descripcion"]
     }
   },
   
@@ -93,5 +119,29 @@
   "reference_indicators": [
     "este", "estos", "sus", "su", "mismo", "anterior", "anteriores",
     "y ahora", "y los", "y las", "otro", "otra", "y en", "ese", "esa"
-  ]
+  ],
+
+  "context_validators": {
+    "abonado": {
+      "required_any": ["datos", "abonado", "cliente", "información"],
+      "exclude_any": ["incidencia", "problema", "factura", "pago"]
+    },
+    "factura": {
+      "required_any": ["factura", "pago", "deuda", "debe", "adeudo"],
+      "exclude_any": ["incidencia", "problema"]
+    },
+    "incidencia_consulta": {
+      "required_any": ["incidencia", "incidencias"],
+      "exclude_any": ["crear", "nueva", "reportar"]
+    },
+    "incidencia_creacion": {
+      "required_any": ["crear", "nueva", "reportar", "tengo", "hay"],
+      "exclude_any": ["ver", "mostrar", "mis incidencias"]
+    }
+  },
+
+  "context_management": {
+    "preserve_on_user_change": ["dni", "query_type", "last_message"],
+    "user_identifier_field": "dni"
+  }
 }

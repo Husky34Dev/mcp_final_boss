@@ -1,181 +1,158 @@
-2025-06-26 00:08:08,712 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:08:08,712 - AGENT_FLOW - INFO - 📨 MENSAJE RECIBIDO: hola
-2025-06-26 00:08:08,712 - AGENT_FLOW - INFO - 📋 CONTEXTO ANTES: {
-  "last_message": "hola",
-  "query_type": "generic",
+2025-06-26 08:42:43,921 - AGENT_FLOW - INFO - ================================================================================
+2025-06-26 08:42:43,923 - AGENT_FLOW - INFO - 📨 MENSAJE RECIBIDO: dame los datos del abonado 87654321B
+2025-06-26 08:42:43,924 - AGENT_FLOW - INFO - 📋 CONTEXTO ANTES: {
+  "last_message": "dame los datos del abonado 87654321B",
+  "query_type": "abonado",
   "is_referential": false,
-  "requires_real_data": false
+  "requires_real_data": true,
+  "dni": "87654321B"
 }
-2025-06-26 00:08:08,713 - AGENT_FLOW - INFO - 📤 RESPUESTA FINAL (sin herramienta):
-2025-06-26 00:08:08,713 - AGENT_FLOW - INFO -    ¡Hola! Solo escribe tu pregunta para que pueda ayudarte.
-2025-06-26 00:08:08,713 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:08:27,657 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:08:27,657 - AGENT_FLOW - INFO - 📨 MENSAJE RECIBIDO: dame los datos del abonado 12345678A
-2025-06-26 00:08:27,657 - AGENT_FLOW - INFO - 📋 CONTEXTO ANTES: {
-  "last_message": "dame los datos del abonado 12345678A",
+2025-06-26 08:42:43,925 - AGENT_FLOW - INFO - 🔄 CONTEXTO DESPUÉS: {
+  "last_message": "dame los datos del abonado 87654321B",
+  "query_type": "abonado",
+  "is_referential": false,
+  "requires_real_data": true,
+  "dni": "87654321B"
+}
+2025-06-26 08:42:43,925 - AGENT_FLOW - INFO - 🔍 ES REFERENCIAL: False
+2025-06-26 08:42:43,926 - AGENT_FLOW - INFO - 🤖 SOLICITUD LLM:
+2025-06-26 08:42:43,927 - AGENT_FLOW - INFO -    - Mensajes: 2 (último: **CONTEXTO ACTUAL DEL USUARIO:**
+Dni: 87654321B
+
+**Consulta del usuario:** dame los datos del abonad...)
+2025-06-26 08:42:43,928 - AGENT_FLOW - INFO -    - Herramientas disponibles: ['existe_abonado', 'direccion_abonado', 'todas_las_facturas', 'datos_abonado']
+2025-06-26 08:42:44,643 - AGENT_FLOW - INFO - 🔧 TOOL CALLS GENERADOS (1):
+2025-06-26 08:42:44,644 - AGENT_FLOW - INFO -    1. datos_abonado({"dni": "87654321B"})
+2025-06-26 08:42:47,320 - AGENT_FLOW - INFO - ✅ EJECUTADO datos_abonado:
+2025-06-26 08:42:47,321 - AGENT_FLOW - INFO -    - Argumentos: {"dni": "87654321B"}
+2025-06-26 08:42:47,322 - AGENT_FLOW - INFO -    - Resultado: ## <i class="fas fa-user" style="color: #4CAF50;"></i> Datos del Abonado
+
+- **<i class="fas fa-user"></i> Nombre:** Ana López
+- **<i class="fas fa-id-card"></i> DNI:** 87654321B
+- **<i class="fas fa-m...
+2025-06-26 08:42:47,323 - AGENT_FLOW - INFO - 📤 RESPUESTA FINAL (con herramienta):
+2025-06-26 08:42:47,323 - AGENT_FLOW - INFO -    ## <i class="fas fa-user" style="color: #4CAF50;"></i> Datos del Abonado
+
+- **<i class="fas fa-user"></i> Nombre:** Ana López
+- **<i class="fas fa-id-card"></i> DNI:** 87654321B
+- **<i class="fas fa-map-marker-alt"></i> Dirección:** Avenida Siempre Viva 456
+- **<i class="fas fa-envelope"></i> Email:...
+2025-06-26 08:42:47,324 - AGENT_FLOW - INFO - ================================================================================
+2025-06-26 08:42:55,796 - AGENT_FLOW - INFO - ================================================================================
+2025-06-26 08:42:55,797 - AGENT_FLOW - INFO - 📨 MENSAJE RECIBIDO: todas las facturas de este abonado
+2025-06-26 08:42:55,798 - AGENT_FLOW - INFO - 📋 CONTEXTO ANTES: {
+  "last_message": "todas las facturas de este abonado",
+  "query_type": "abonado",
+  "is_referential": true,
+  "requires_real_data": true,
+  "dni": "87654321B",
+  "ubicacion": "este abonado"
+}
+2025-06-26 08:42:55,799 - AGENT_FLOW - INFO - 🔄 CONTEXTO DESPUÉS: {
+  "last_message": "todas las facturas de este abonado",
+  "query_type": "abonado",
+  "is_referential": true,
+  "requires_real_data": true,
+  "dni": "87654321B",
+  "ubicacion": "este abonado"
+}
+2025-06-26 08:42:55,800 - AGENT_FLOW - INFO - 🔍 ES REFERENCIAL: True
+2025-06-26 08:42:55,800 - AGENT_FLOW - INFO - 🤖 SOLICITUD LLM:
+2025-06-26 08:42:55,801 - AGENT_FLOW - INFO -    - Mensajes: 4 (último: **CONTEXTO ACTUAL DEL USUARIO:**
+Dni: 87654321B
+
+**Consulta del usuario:** todas las facturas de est...)
+2025-06-26 08:42:55,802 - AGENT_FLOW - INFO -    - Herramientas disponibles: ['existe_abonado', 'direccion_abonado', 'todas_las_facturas', 'datos_abonado']
+2025-06-26 08:42:56,316 - AGENT_FLOW - INFO - 🔧 SIN TOOL CALLS
+2025-06-26 08:42:59,522 - AGENT_FLOW - INFO - ✅ EJECUTADO existe_abonado:
+2025-06-26 08:42:59,523 - AGENT_FLOW - INFO -    - Argumentos: {"dni": "87654321B"}
+2025-06-26 08:42:59,524 - AGENT_FLOW - INFO -    - Resultado: ## <i class="fas fa-check-circle" style="color: #4CAF50;"></i> Verificación de Abonado
+
+- **<i class="fas fa-search"></i> Existe:** True
+
+2025-06-26 08:42:59,524 - AGENT_FLOW - INFO - 📤 RESPUESTA FINAL (con herramienta):
+2025-06-26 08:42:59,525 - AGENT_FLOW - INFO -    ## <i class="fas fa-check-circle" style="color: #4CAF50;"></i> Verificación de Abonado
+
+- **<i class="fas fa-search"></i> Existe:** True
+
+2025-06-26 08:42:59,525 - AGENT_FLOW - INFO - ================================================================================
+2025-06-26 08:47:47,868 - AGENT_FLOW - INFO - ================================================================================
+2025-06-26 08:47:47,869 - AGENT_FLOW - INFO - 📨 MENSAJE RECIBIDO: hola, dame los datos del abonado con dni 12345678A
+2025-06-26 08:47:47,870 - AGENT_FLOW - INFO - 📋 CONTEXTO ANTES: {
+  "last_message": "hola, dame los datos del abonado con dni 12345678A",
   "query_type": "abonado",
   "is_referential": false,
   "requires_real_data": true,
   "dni": "12345678A"
 }
-2025-06-26 00:08:27,658 - AGENT_FLOW - INFO - 🔄 CONTEXTO DESPUÉS: {
-  "last_message": "dame los datos del abonado 12345678A",
+2025-06-26 08:47:47,871 - AGENT_FLOW - INFO - 🔄 CONTEXTO DESPUÉS: {
+  "last_message": "hola, dame los datos del abonado con dni 12345678A",
   "query_type": "abonado",
   "is_referential": false,
   "requires_real_data": true,
   "dni": "12345678A"
 }
-2025-06-26 00:08:27,658 - AGENT_FLOW - INFO - 🔍 ES REFERENCIAL: False
-2025-06-26 00:08:27,658 - AGENT_FLOW - INFO - 🤖 SOLICITUD LLM:
-2025-06-26 00:08:27,658 - AGENT_FLOW - INFO -    - Mensajes: 2 (último: dame los datos del abonado 12345678A...)
-2025-06-26 00:08:27,659 - AGENT_FLOW - INFO -    - Herramientas disponibles: ['existe_abonado', 'direccion_abonado', 'todas_las_facturas', 'datos_abonado']
-2025-06-26 00:08:28,077 - AGENT_FLOW - INFO - 🔧 TOOL CALLS GENERADOS (1):
-2025-06-26 00:08:28,077 - AGENT_FLOW - INFO -    1. datos_abonado({"dni": "12345678A"})
-2025-06-26 00:08:30,271 - AGENT_FLOW - INFO - ✅ EJECUTADO datos_abonado:
-2025-06-26 00:08:30,272 - AGENT_FLOW - INFO -    - Argumentos: {"dni": "12345678A"}
-2025-06-26 00:08:30,272 - AGENT_FLOW - INFO -    - Resultado: ## <i class="fas fa-user" style="color: #4CAF50;"></i> Datos del Abonado
+2025-06-26 08:47:47,872 - AGENT_FLOW - INFO - 🔍 ES REFERENCIAL: False
+2025-06-26 08:47:47,873 - AGENT_FLOW - INFO - 🤖 SOLICITUD LLM:
+2025-06-26 08:47:47,873 - AGENT_FLOW - INFO -    - Mensajes: 2 (último: **CONTEXTO ACTUAL DEL USUARIO:**
+Dni: 12345678A
+
+**Consulta del usuario:** hola, dame los datos del ...)
+2025-06-26 08:47:47,874 - AGENT_FLOW - INFO -    - Herramientas disponibles: ['existe_abonado', 'direccion_abonado', 'todas_las_facturas', 'datos_abonado']
+2025-06-26 08:47:48,674 - AGENT_FLOW - INFO - 🔧 TOOL CALLS GENERADOS (1):
+2025-06-26 08:47:48,676 - AGENT_FLOW - INFO -    1. datos_abonado({"dni": "12345678A"})
+2025-06-26 08:47:51,250 - AGENT_FLOW - INFO - ✅ EJECUTADO datos_abonado:
+2025-06-26 08:47:51,251 - AGENT_FLOW - INFO -    - Argumentos: {"dni": "12345678A"}
+2025-06-26 08:47:51,252 - AGENT_FLOW - INFO -    - Resultado: ## <i class="fas fa-user" style="color: #4CAF50;"></i> Datos del Abonado
 
 - **<i class="fas fa-user"></i> Nombre:** Juan Pérez
 - **<i class="fas fa-id-card"></i> DNI:** 12345678A
 - **<i class="fas fa-...
-2025-06-26 00:08:30,272 - AGENT_FLOW - INFO - 📤 RESPUESTA FINAL (con herramienta):
-2025-06-26 00:08:30,272 - AGENT_FLOW - INFO -    ## <i class="fas fa-user" style="color: #4CAF50;"></i> Datos del Abonado
+2025-06-26 08:47:51,252 - AGENT_FLOW - INFO - 📤 RESPUESTA FINAL (con herramienta):
+2025-06-26 08:47:51,252 - AGENT_FLOW - INFO -    ## <i class="fas fa-user" style="color: #4CAF50;"></i> Datos del Abonado
 
 - **<i class="fas fa-user"></i> Nombre:** Juan Pérez
 - **<i class="fas fa-id-card"></i> DNI:** 12345678A
 - **<i class="fas fa-map-marker-alt"></i> Dirección:** Calle Falsa 123
 - **<i class="fas fa-envelope"></i> Email:** juan@...
-2025-06-26 00:08:30,272 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:11:06,130 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:11:06,131 - AGENT_FLOW - INFO - 📨 MENSAJE RECIBIDO: hola
-2025-06-26 00:11:06,131 - AGENT_FLOW - INFO - 📋 CONTEXTO ANTES: {
-  "last_message": "hola",
-  "query_type": "generic",
-  "is_referential": false,
-  "requires_real_data": false
-}
-2025-06-26 00:11:06,132 - AGENT_FLOW - INFO - 📤 RESPUESTA FINAL (sin herramienta):
-2025-06-26 00:11:06,132 - AGENT_FLOW - INFO -    ¡Hola! Solo escribe tu pregunta para que pueda ayudarte.
-2025-06-26 00:11:06,132 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:11:15,216 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:11:15,217 - AGENT_FLOW - INFO - 📨 MENSAJE RECIBIDO: dame los datos del abonado 12345678A
-2025-06-26 00:11:15,217 - AGENT_FLOW - INFO - 📋 CONTEXTO ANTES: {
-  "last_message": "dame los datos del abonado 12345678A",
-  "query_type": "abonado",
-  "is_referential": false,
-  "requires_real_data": true,
-  "dni": "12345678A"
-}
-2025-06-26 00:11:15,217 - AGENT_FLOW - INFO - 🔄 CONTEXTO DESPUÉS: {
-  "last_message": "dame los datos del abonado 12345678A",
-  "query_type": "abonado",
-  "is_referential": false,
-  "requires_real_data": true,
-  "dni": "12345678A"
-}
-2025-06-26 00:11:15,218 - AGENT_FLOW - INFO - 🔍 ES REFERENCIAL: False
-2025-06-26 00:11:15,218 - AGENT_FLOW - INFO - 🤖 SOLICITUD LLM:
-2025-06-26 00:11:15,218 - AGENT_FLOW - INFO -    - Mensajes: 2 (último: dame los datos del abonado 12345678A...)
-2025-06-26 00:11:15,218 - AGENT_FLOW - INFO -    - Herramientas disponibles: ['existe_abonado', 'direccion_abonado', 'todas_las_facturas', 'datos_abonado']
-2025-06-26 00:11:15,596 - AGENT_FLOW - INFO - 🔧 TOOL CALLS GENERADOS (1):
-2025-06-26 00:11:15,596 - AGENT_FLOW - INFO -    1. datos_abonado({"dni": "12345678A"})
-2025-06-26 00:11:17,776 - AGENT_FLOW - INFO - ✅ EJECUTADO datos_abonado:
-2025-06-26 00:11:17,777 - AGENT_FLOW - INFO -    - Argumentos: {"dni": "12345678A"}
-2025-06-26 00:11:17,777 - AGENT_FLOW - INFO -    - Resultado: ## <i class="fas fa-user" style="color: #4CAF50;"></i> Datos del Abonado
-
-- **<i class="fas fa-user"></i> Nombre:** Juan Pérez
-- **<i class="fas fa-id-card"></i> DNI:** 12345678A
-- **<i class="fas fa-...
-2025-06-26 00:11:17,777 - AGENT_FLOW - INFO - 📤 RESPUESTA FINAL (con herramienta):
-2025-06-26 00:11:17,777 - AGENT_FLOW - INFO -    ## <i class="fas fa-user" style="color: #4CAF50;"></i> Datos del Abonado
-
-- **<i class="fas fa-user"></i> Nombre:** Juan Pérez
-- **<i class="fas fa-id-card"></i> DNI:** 12345678A
-- **<i class="fas fa-map-marker-alt"></i> Dirección:** Calle Falsa 123
-- **<i class="fas fa-envelope"></i> Email:** juan@...
-2025-06-26 00:11:17,777 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:11:29,247 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:11:29,247 - AGENT_FLOW - INFO - 📨 MENSAJE RECIBIDO: hola
-2025-06-26 00:11:29,247 - AGENT_FLOW - INFO - 📋 CONTEXTO ANTES: {
-  "last_message": "hola",
-  "query_type": "generic",
-  "is_referential": false,
-  "requires_real_data": false,
-  "dni": "12345678A"
-}
-2025-06-26 00:11:29,248 - AGENT_FLOW - INFO - 📤 RESPUESTA FINAL (sin herramienta):
-2025-06-26 00:11:29,248 - AGENT_FLOW - INFO -    ¡Hola! Solo escribe tu pregunta para que pueda ayudarte.
-2025-06-26 00:11:29,248 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:11:36,512 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:11:36,513 - AGENT_FLOW - INFO - 📨 MENSAJE RECIBIDO: Dame los datos del abonado 12345678A
-2025-06-26 00:11:36,513 - AGENT_FLOW - INFO - 📋 CONTEXTO ANTES: {
-  "last_message": "Dame los datos del abonado 12345678A",
-  "query_type": "abonado",
-  "is_referential": false,
-  "requires_real_data": true,
-  "dni": "12345678A"
-}
-2025-06-26 00:11:36,513 - AGENT_FLOW - INFO - 🔄 CONTEXTO DESPUÉS: {
-  "last_message": "Dame los datos del abonado 12345678A",
-  "query_type": "abonado",
-  "is_referential": false,
-  "requires_real_data": true,
-  "dni": "12345678A"
-}
-2025-06-26 00:11:36,513 - AGENT_FLOW - INFO - 🔍 ES REFERENCIAL: False
-2025-06-26 00:11:36,513 - AGENT_FLOW - INFO - 🤖 SOLICITUD LLM:
-2025-06-26 00:11:36,514 - AGENT_FLOW - INFO -    - Mensajes: 4 (último: Dame los datos del abonado 12345678A...)
-2025-06-26 00:11:36,514 - AGENT_FLOW - INFO -    - Herramientas disponibles: ['existe_abonado', 'direccion_abonado', 'todas_las_facturas', 'datos_abonado']
-2025-06-26 00:11:36,840 - AGENT_FLOW - INFO - 🔧 TOOL CALLS GENERADOS (1):
-2025-06-26 00:11:36,840 - AGENT_FLOW - INFO -    1. datos_abonado({"dni": "12345678A"})
-2025-06-26 00:11:39,001 - AGENT_FLOW - INFO - ✅ EJECUTADO datos_abonado:
-2025-06-26 00:11:39,002 - AGENT_FLOW - INFO -    - Argumentos: {"dni": "12345678A"}
-2025-06-26 00:11:39,002 - AGENT_FLOW - INFO -    - Resultado: ## <i class="fas fa-user" style="color: #4CAF50;"></i> Datos del Abonado
-
-- **<i class="fas fa-user"></i> Nombre:** Juan Pérez
-- **<i class="fas fa-id-card"></i> DNI:** 12345678A
-- **<i class="fas fa-...
-2025-06-26 00:11:39,002 - AGENT_FLOW - INFO - 📤 RESPUESTA FINAL (con herramienta):
-2025-06-26 00:11:39,002 - AGENT_FLOW - INFO -    ## <i class="fas fa-user" style="color: #4CAF50;"></i> Datos del Abonado
-
-- **<i class="fas fa-user"></i> Nombre:** Juan Pérez
-- **<i class="fas fa-id-card"></i> DNI:** 12345678A
-- **<i class="fas fa-map-marker-alt"></i> Dirección:** Calle Falsa 123
-- **<i class="fas fa-envelope"></i> Email:** juan@...
-2025-06-26 00:11:39,003 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:11:39,783 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:11:39,783 - AGENT_FLOW - INFO - 📨 MENSAJE RECIBIDO: y todas sus facturas
-2025-06-26 00:11:39,783 - AGENT_FLOW - INFO - 📋 CONTEXTO ANTES: {
-  "last_message": "y todas sus facturas",
+2025-06-26 08:47:51,253 - AGENT_FLOW - INFO - ================================================================================
+2025-06-26 08:47:56,989 - AGENT_FLOW - INFO - ================================================================================
+2025-06-26 08:47:56,990 - AGENT_FLOW - INFO - 📨 MENSAJE RECIBIDO: ver todas las facturas de este abonado
+2025-06-26 08:47:56,991 - AGENT_FLOW - INFO - 📋 CONTEXTO ANTES: {
+  "last_message": "ver todas las facturas de este abonado",
   "query_type": "factura",
   "is_referential": true,
   "requires_real_data": true,
-  "dni": "12345678A"
+  "dni": "12345678A",
+  "ubicacion": "este abonado"
 }
-2025-06-26 00:11:39,784 - AGENT_FLOW - INFO - 🔄 CONTEXTO DESPUÉS: {
-  "last_message": "y todas sus facturas",
+2025-06-26 08:47:56,992 - AGENT_FLOW - INFO - 🔄 CONTEXTO DESPUÉS: {
+  "last_message": "ver todas las facturas de este abonado",
   "query_type": "factura",
   "is_referential": true,
   "requires_real_data": true,
-  "dni": "12345678A"
+  "dni": "12345678A",
+  "ubicacion": "este abonado"
 }
-2025-06-26 00:11:39,784 - AGENT_FLOW - INFO - 🔍 ES REFERENCIAL: True
-2025-06-26 00:11:39,784 - AGENT_FLOW - INFO - 🤖 SOLICITUD LLM:
-2025-06-26 00:11:39,784 - AGENT_FLOW - INFO -    - Mensajes: 2 (último: ### Contexto Referencial
-- **Dni:** 12345678A\n\n**Consulta del usuario:** y todas sus facturas...)
-2025-06-26 00:11:39,784 - AGENT_FLOW - INFO -    - Herramientas disponibles: ['estado_pagos', 'ultimo_pago', 'deuda_total', 'facturas_pendientes', 'todas_las_facturas']
-2025-06-26 00:11:40,102 - AGENT_FLOW - INFO - 🔧 TOOL CALLS GENERADOS (1):
-2025-06-26 00:11:40,102 - AGENT_FLOW - INFO -    1. todas_las_facturas({"dni": "12345678A"})
-2025-06-26 00:11:42,300 - AGENT_FLOW - INFO - ✅ EJECUTADO todas_las_facturas:
-2025-06-26 00:11:42,300 - AGENT_FLOW - INFO -    - Argumentos: {"dni": "12345678A"}
-2025-06-26 00:11:42,300 - AGENT_FLOW - INFO -    - Resultado: ## <i class="fas fa-file-invoice" style="color: #2196F3;"></i> Todas las Facturas
+2025-06-26 08:47:56,992 - AGENT_FLOW - INFO - 🔍 ES REFERENCIAL: True
+2025-06-26 08:47:56,993 - AGENT_FLOW - INFO - 🤖 SOLICITUD LLM:
+2025-06-26 08:47:56,994 - AGENT_FLOW - INFO -    - Mensajes: 2 (último: **CONTEXTO ACTUAL DEL USUARIO:**
+Dni: 12345678A
+
+**Consulta del usuario:** ver todas las facturas de...)
+2025-06-26 08:47:56,995 - AGENT_FLOW - INFO -    - Herramientas disponibles: ['estado_pagos', 'ultimo_pago', 'deuda_total', 'facturas_pendientes', 'todas_las_facturas']
+2025-06-26 08:47:57,477 - AGENT_FLOW - INFO - 🔧 TOOL CALLS GENERADOS (1):
+2025-06-26 08:47:57,478 - AGENT_FLOW - INFO -    1. todas_las_facturas({"dni": "12345678A"})
+2025-06-26 08:48:00,128 - AGENT_FLOW - INFO - ✅ EJECUTADO todas_las_facturas:
+2025-06-26 08:48:00,128 - AGENT_FLOW - INFO -    - Argumentos: {"dni": "12345678A"}
+2025-06-26 08:48:00,129 - AGENT_FLOW - INFO -    - Resultado: ## <i class="fas fa-file-invoice" style="color: #2196F3;"></i> Todas las Facturas
 
 | Fecha | Estado | Importe |
 |-------|-------|-------|
 | 2025-06-10 | Pendiente | 200.75 |
 | 2025-06-01 | Pagado | 10...
-2025-06-26 00:11:42,300 - AGENT_FLOW - INFO - 📤 RESPUESTA FINAL (con herramienta):
-2025-06-26 00:11:42,301 - AGENT_FLOW - INFO -    ## <i class="fas fa-file-invoice" style="color: #2196F3;"></i> Todas las Facturas
+2025-06-26 08:48:00,129 - AGENT_FLOW - INFO - 📤 RESPUESTA FINAL (con herramienta):
+2025-06-26 08:48:00,129 - AGENT_FLOW - INFO -    ## <i class="fas fa-file-invoice" style="color: #2196F3;"></i> Todas las Facturas
 
 | Fecha | Estado | Importe |
 |-------|-------|-------|
@@ -183,89 +160,117 @@
 | 2025-06-01 | Pagado | 100.5 |
 
 **Total:** 301.25€
-2025-06-26 00:11:42,301 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:11:46,047 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:11:46,047 - AGENT_FLOW - INFO - 📨 MENSAJE RECIBIDO: hay incidencia sen madrid
-2025-06-26 00:11:46,047 - AGENT_FLOW - INFO - 📋 CONTEXTO ANTES: {
-  "last_message": "hay incidencia sen madrid",
-  "query_type": "incidencia_consulta",
-  "is_referential": false,
-  "requires_real_data": true,
-  "dni": "12345678A",
-  "ubicacion": "madrid"
-}
-2025-06-26 00:11:46,048 - AGENT_FLOW - INFO - 🔄 CONTEXTO DESPUÉS: {
-  "last_message": "hay incidencia sen madrid",
-  "query_type": "incidencia_consulta",
-  "is_referential": false,
-  "requires_real_data": true,
-  "dni": "12345678A",
-  "ubicacion": "madrid"
-}
-2025-06-26 00:11:46,048 - AGENT_FLOW - INFO - 🔍 ES REFERENCIAL: False
-2025-06-26 00:11:46,048 - AGENT_FLOW - INFO - 🤖 SOLICITUD LLM:
-2025-06-26 00:11:46,048 - AGENT_FLOW - INFO -    - Mensajes: 2 (último: hay incidencia sen madrid...)
-2025-06-26 00:11:46,048 - AGENT_FLOW - INFO -    - Herramientas disponibles: ['crear_incidencia', 'incidencias_por_dni', 'incidencias_por_nombre', 'actualizar_estado_incidencia', 'incidencias_pendientes', 'incidencias_por_ubicacion']
-2025-06-26 00:11:46,390 - AGENT_FLOW - INFO - 🔧 TOOL CALLS GENERADOS (1):
-2025-06-26 00:11:46,390 - AGENT_FLOW - INFO -    1. incidencias_por_ubicacion({"ubicacion": "Madrid"})
-2025-06-26 00:11:48,564 - AGENT_FLOW - INFO - ✅ EJECUTADO incidencias_por_ubicacion:
-2025-06-26 00:11:48,565 - AGENT_FLOW - INFO -    - Argumentos: {"ubicacion": "Madrid"}
-2025-06-26 00:11:48,565 - AGENT_FLOW - INFO -    - Resultado: ## <i class="fas fa-map-marker-alt" style="color: #2196F3;"></i> Incidencias por Ubicación
-
-### <i class="fas fa-ticket-alt"></i> Incidencia
-**Estado:** Abierto
-**Descripción:** Fallo en el suministro...
-2025-06-26 00:11:48,565 - AGENT_FLOW - INFO - 📤 RESPUESTA FINAL (con herramienta):
-2025-06-26 00:11:48,566 - AGENT_FLOW - INFO -    ## <i class="fas fa-map-marker-alt" style="color: #2196F3;"></i> Incidencias por Ubicación
-
-### <i class="fas fa-ticket-alt"></i> Incidencia
-**Estado:** Abierto
-**Descripción:** Fallo en el suministro eléctrico
-
-### <i class="fas fa-ticket-alt"></i> Incidencia
-**Estado:** Abierto
-**Descripción:** de...
-2025-06-26 00:11:48,566 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:12:00,055 - AGENT_FLOW - INFO - ================================================================================
-2025-06-26 00:12:00,055 - AGENT_FLOW - INFO - 📨 MENSAJE RECIBIDO: Dame todas las facturas pendientes
-2025-06-26 00:12:00,055 - AGENT_FLOW - INFO - 📋 CONTEXTO ANTES: {
-  "last_message": "Dame todas las facturas pendientes",
+2025-06-26 08:48:00,130 - AGENT_FLOW - INFO - ================================================================================
+2025-06-26 08:48:17,777 - AGENT_FLOW - INFO - ================================================================================
+2025-06-26 08:48:17,778 - AGENT_FLOW - INFO - 📨 MENSAJE RECIBIDO: dame todas las facturas del abonado 87654321B
+2025-06-26 08:48:17,779 - AGENT_FLOW - INFO - 📋 CONTEXTO ANTES: {
+  "last_message": "dame todas las facturas del abonado 87654321B",
   "query_type": "factura",
   "is_referential": false,
   "requires_real_data": true,
-  "dni": "12345678A",
-  "ubicacion": "madrid"
+  "dni": "87654321B",
+  "ubicacion": "este abonado"
 }
-2025-06-26 00:12:00,056 - AGENT_FLOW - INFO - 🔄 CONTEXTO DESPUÉS: {
-  "last_message": "Dame todas las facturas pendientes",
+2025-06-26 08:48:17,781 - AGENT_FLOW - INFO - 🔄 CONTEXTO DESPUÉS: {
+  "last_message": "dame todas las facturas del abonado 87654321B",
   "query_type": "factura",
   "is_referential": false,
   "requires_real_data": true,
-  "dni": "12345678A",
-  "ubicacion": "madrid"
+  "dni": "87654321B",
+  "ubicacion": "este abonado"
 }
-2025-06-26 00:12:00,056 - AGENT_FLOW - INFO - 🔍 ES REFERENCIAL: False
-2025-06-26 00:12:00,056 - AGENT_FLOW - INFO - 🤖 SOLICITUD LLM:
-2025-06-26 00:12:00,056 - AGENT_FLOW - INFO -    - Mensajes: 4 (último: Dame todas las facturas pendientes...)
-2025-06-26 00:12:00,056 - AGENT_FLOW - INFO -    - Herramientas disponibles: ['estado_pagos', 'ultimo_pago', 'deuda_total', 'facturas_pendientes', 'todas_las_facturas']
-2025-06-26 00:12:00,390 - AGENT_FLOW - INFO - 🔧 TOOL CALLS GENERADOS (1):
-2025-06-26 00:12:00,390 - AGENT_FLOW - INFO -    1. facturas_pendientes({"dni": "12345678A"})
-2025-06-26 00:12:02,571 - AGENT_FLOW - INFO - ✅ EJECUTADO facturas_pendientes:
-2025-06-26 00:12:02,571 - AGENT_FLOW - INFO -    - Argumentos: {"dni": "12345678A"}
-2025-06-26 00:12:02,571 - AGENT_FLOW - INFO -    - Resultado: ## <i class="fas fa-clock" style="color: #FF9800;"></i> Facturas Pendientes
+2025-06-26 08:48:17,783 - AGENT_FLOW - INFO - 🔍 ES REFERENCIAL: False
+2025-06-26 08:48:17,784 - AGENT_FLOW - INFO - 🤖 SOLICITUD LLM:
+2025-06-26 08:48:17,786 - AGENT_FLOW - INFO -    - Mensajes: 4 (último: **CONTEXTO ACTUAL DEL USUARIO:**
+Dni: 87654321B
+
+**Consulta del usuario:** dame todas las facturas d...)
+2025-06-26 08:48:17,787 - AGENT_FLOW - INFO -    - Herramientas disponibles: ['estado_pagos', 'ultimo_pago', 'deuda_total', 'facturas_pendientes', 'todas_las_facturas']
+2025-06-26 08:48:18,228 - AGENT_FLOW - INFO - 🔧 TOOL CALLS GENERADOS (1):
+2025-06-26 08:48:18,228 - AGENT_FLOW - INFO -    1. todas_las_facturas({"dni": "87654321B"})
+2025-06-26 08:48:20,597 - AGENT_FLOW - INFO - ✅ EJECUTADO todas_las_facturas:
+2025-06-26 08:48:20,598 - AGENT_FLOW - INFO -    - Argumentos: {"dni": "87654321B"}
+2025-06-26 08:48:20,598 - AGENT_FLOW - INFO -    - Resultado: ## <i class="fas fa-file-invoice" style="color: #2196F3;"></i> Todas las Facturas
 
 | Fecha | Estado | Importe |
 |-------|-------|-------|
-| 2025-06-10 | Pendiente | 200.75 |
-
-**Total:** 200.75€
-
-2025-06-26 00:12:02,572 - AGENT_FLOW - INFO - 📤 RESPUESTA FINAL (con herramienta):
-2025-06-26 00:12:02,572 - AGENT_FLOW - INFO -    ## <i class="fas fa-clock" style="color: #FF9800;"></i> Facturas Pendientes
+| 2025-06-05 | Pendiente | 300.0 |
+| 2025-05-15 | Pagado | 150...
+2025-06-26 08:48:20,599 - AGENT_FLOW - INFO - 📤 RESPUESTA FINAL (con herramienta):
+2025-06-26 08:48:20,599 - AGENT_FLOW - INFO -    ## <i class="fas fa-file-invoice" style="color: #2196F3;"></i> Todas las Facturas
 
 | Fecha | Estado | Importe |
 |-------|-------|-------|
-| 2025-06-10 | Pendiente | 200.75 |
+| 2025-06-05 | Pendiente | 300.0 |
+| 2025-05-15 | Pagado | 150.0 |
 
-**Total:** 200.75€
-2025-06-26 00:12:02,572 - AGENT_FLOW - INFO - ================================================================================
+**Total:** 450.00€
+2025-06-26 08:48:20,599 - AGENT_FLOW - INFO - ================================================================================
+2025-06-26 08:48:26,473 - AGENT_FLOW - INFO - ================================================================================
+2025-06-26 08:48:26,474 - AGENT_FLOW - INFO - 📨 MENSAJE RECIBIDO: y solo las pendientes
+2025-06-26 08:48:26,475 - AGENT_FLOW - INFO - 📋 CONTEXTO ANTES: {
+  "dni": "87654321B",
+  "query_type": "generic",
+  "last_message": "y solo las pendientes",
+  "is_referential": false,
+  "requires_real_data": false
+}
+2025-06-26 08:48:26,477 - AGENT_FLOW - INFO - 🔄 CONTEXTO DESPUÉS: {
+  "dni": "87654321B",
+  "query_type": "generic",
+  "last_message": "y solo las pendientes",
+  "is_referential": false,
+  "requires_real_data": false
+}
+2025-06-26 08:48:26,479 - AGENT_FLOW - INFO - 🔍 ES REFERENCIAL: False
+2025-06-26 08:48:26,479 - AGENT_FLOW - INFO - 🤖 SOLICITUD LLM:
+2025-06-26 08:48:26,480 - AGENT_FLOW - INFO -    - Mensajes: 2 (último: y solo las pendientes...)
+2025-06-26 08:48:26,481 - AGENT_FLOW - INFO -    - Herramientas disponibles: ['existe_abonado', 'datos_abonado', 'herramientas_disponibles']
+2025-06-26 08:48:26,968 - AGENT_FLOW - INFO - 🔧 SIN TOOL CALLS
+2025-06-26 08:48:26,970 - AGENT_FLOW - INFO - 📤 RESPUESTA FINAL (sin herramienta):
+2025-06-26 08:48:26,970 - AGENT_FLOW - INFO -    No tengo información previa para poder responder a tu pregunta. ¿Podrías proporcionar más contexto o detalles sobre lo que necesitas? Estoy aquí para ayudarte.
+2025-06-26 08:48:26,971 - AGENT_FLOW - INFO - ================================================================================
+2025-06-26 08:48:32,318 - AGENT_FLOW - INFO - ================================================================================
+2025-06-26 08:48:32,319 - AGENT_FLOW - INFO - 📨 MENSAJE RECIBIDO: solo sus facturas pendientes
+2025-06-26 08:48:32,320 - AGENT_FLOW - INFO - 📋 CONTEXTO ANTES: {
+  "dni": "87654321B",
+  "query_type": "factura",
+  "last_message": "solo sus facturas pendientes",
+  "is_referential": true,
+  "requires_real_data": true
+}
+2025-06-26 08:48:32,322 - AGENT_FLOW - INFO - 🔄 CONTEXTO DESPUÉS: {
+  "dni": "87654321B",
+  "query_type": "factura",
+  "last_message": "solo sus facturas pendientes",
+  "is_referential": true,
+  "requires_real_data": true
+}
+2025-06-26 08:48:32,323 - AGENT_FLOW - INFO - 🔍 ES REFERENCIAL: True
+2025-06-26 08:48:32,324 - AGENT_FLOW - INFO - 🤖 SOLICITUD LLM:
+2025-06-26 08:48:32,325 - AGENT_FLOW - INFO -    - Mensajes: 6 (último: **CONTEXTO ACTUAL DEL USUARIO:**
+Dni: 87654321B
+
+**Consulta del usuario:** solo sus facturas pendien...)
+2025-06-26 08:48:32,328 - AGENT_FLOW - INFO -    - Herramientas disponibles: ['estado_pagos', 'ultimo_pago', 'deuda_total', 'facturas_pendientes', 'todas_las_facturas']
+2025-06-26 08:48:32,806 - AGENT_FLOW - INFO - 🔧 SIN TOOL CALLS
+2025-06-26 08:48:35,633 - AGENT_FLOW - INFO - ✅ EJECUTADO facturas_pendientes:
+2025-06-26 08:48:35,634 - AGENT_FLOW - INFO -    - Argumentos: {"dni": "87654321B"}
+2025-06-26 08:48:35,634 - AGENT_FLOW - INFO -    - Resultado: ## <i class="fas fa-clock" style="color: #FF9800;"></i> Facturas Pendientes
+
+| Fecha | Estado | Importe |
+|-------|-------|-------|
+| 2025-06-05 | Pendiente | 300.0 |
+
+**Total:** 300.00€
+
+2025-06-26 08:48:35,635 - AGENT_FLOW - INFO - 📤 RESPUESTA FINAL (con herramienta):
+2025-06-26 08:48:35,636 - AGENT_FLOW - INFO -    ## <i class="fas fa-clock" style="color: #FF9800;"></i> Facturas Pendientes
+
+| Fecha | Estado | Importe |
+|-------|-------|-------|
+| 2025-06-05 | Pendiente | 300.0 |
+
+**Total:** 300.00€
+
+2025-06-26 08:48:35,636 - AGENT_FLOW - INFO - ================================================================================

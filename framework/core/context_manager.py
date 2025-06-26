@@ -58,15 +58,50 @@ class SimpleConversationContext:
         self._apply_inheritance_rules(prev_data)
     
     def _detect_query_type(self, text: str) -> str:
-        """Detecta el tipo de consulta basado en palabras clave."""
+        """Detecta el tipo de consulta basado en configuración JSON."""
         text_lower = text.lower()
         query_types = self.config.get("query_types", {})
         
-        for qtype, keywords in query_types.items():
-            if any(keyword in text_lower for keyword in keywords):
-                return qtype
+        # Buscar coincidencias ordenadas por especificidad (frases más largas primero)
+        best_match = ("generic", 0)
         
-        return "generic"
+        for qtype, keywords in query_types.items():
+            for keyword in keywords:
+                if keyword in text_lower:
+                    # Priorizar por longitud de keyword (más específico)
+                    score = len(keyword.split())
+                    if score > best_match[1]:
+                        # Validar con contexto si está configurado
+                        if self._validate_query_type_context(text_lower, qtype):
+                            best_match = (qtype, score)
+        
+        return best_match[0]
+    
+    def _validate_query_type_context(self, text_lower: str, proposed_type: str) -> bool:
+        """
+        Valida el contexto usando reglas configurables del JSON.
+        """
+        context_validators = self.config.get("context_validators", {})
+        validator = context_validators.get(proposed_type)
+        
+        if not validator:
+            return True  # Si no hay validador, aceptar
+        
+        # Verificar palabras requeridas
+        required_any = validator.get("required_any", [])
+        if required_any:
+            has_required = any(word in text_lower for word in required_any)
+            if not has_required:
+                return False
+        
+        # Verificar palabras excluidas
+        exclude_any = validator.get("exclude_any", [])
+        if exclude_any:
+            has_excluded = any(word in text_lower for word in exclude_any)
+            if has_excluded:
+                return False
+        
+        return True
     
     def _is_referential(self, text: str) -> bool:
         """Detecta si el mensaje hace referencia a contexto anterior."""
@@ -140,6 +175,46 @@ class SimpleConversationContext:
             return "### Contexto Referencial\n" + "\n".join(items)
         return ""
     
+    def get_context_injection_prompt(self) -> str:
+        """
+        Construye prompt de contexto actual para inyectar en el LLM de forma abstracta.
+        Basado en las reglas de 'inject_context' del query_type actual.
+        """
+        query_type = self.data.get('query_type', '')
+        field_rules = self.config.get("field_rules", {})
+        rules = field_rules.get(query_type, {})
+        
+        # Verificar si este query_type requiere inyección de contexto
+        inject_fields = rules.get('inject_context', [])
+        if not inject_fields:
+            return ""
+        
+        context_items = []
+        for field in inject_fields:
+            if field in self.data and self.data[field] is not None:
+                field_label = field.replace('_', ' ').title()
+                context_items.append(f"{field_label}: {self.data[field]}")
+        
+        if context_items:
+            return "**CONTEXTO ACTUAL DEL USUARIO:**\n" + "\n".join(context_items)
+        return ""
+    
+    def should_inject_context(self) -> bool:
+        """
+        Determina si se debe inyectar contexto basado en reglas configurables.
+        """
+        query_type = self.data.get('query_type', '')
+        field_rules = self.config.get("field_rules", {})
+        rules = field_rules.get(query_type, {})
+        
+        # Si hay reglas de inyección y tenemos datos para inyectar
+        inject_fields = rules.get('inject_context', [])
+        if inject_fields:
+            return any(field in self.data and self.data[field] is not None for field in inject_fields)
+        
+        # Si es referencial, también inyectar
+        return self.data.get('is_referential', False)
+    
     def validate_context(self) -> Optional[Dict[str, str]]:
         """Valida que el contexto tenga los campos requeridos."""
         query_type = self.data.get('query_type', '')
@@ -155,3 +230,55 @@ class SimpleConversationContext:
                 missing_fields[field] = error_msg
         
         return missing_fields if missing_fields else None
+    
+    def clear_user_context(self, preserve_fields: Optional[List[str]] = None):
+        """
+        Limpia el contexto de usuario para evitar contaminación entre sesiones.
+        
+        Args:
+            preserve_fields: Lista de campos a preservar (ej: ['last_message', 'query_type'])
+        """
+        if preserve_fields is None:
+            preserve_fields = []
+        
+        preserved_data = {field: self.data.get(field) for field in preserve_fields if field in self.data}
+        self.data.clear()
+        self.data.update(preserved_data)
+        
+        logging.info(f"Contexto limpiado. Campos preservados: {preserve_fields}")
+    
+    def should_clear_context(self, current_user_id: Optional[str], previous_user_id: Optional[str]) -> bool:
+        """
+        Determina si se debe limpiar el contexto basado en cambio de usuario.
+        
+        Args:
+            current_user_id: Identificador del usuario actual (ej: DNI)
+            previous_user_id: Identificador del usuario anterior
+            
+        Returns:
+            bool: True si se debe limpiar el contexto
+        """
+        if not current_user_id or not previous_user_id:
+            return False
+            
+        return current_user_id != previous_user_id
+    
+    def get_context_preserve_fields(self) -> List[str]:
+        """
+        Obtiene los campos a preservar durante la limpieza de contexto desde configuración.
+        
+        Returns:
+            List[str]: Lista de campos a preservar
+        """
+        context_management = self.config.get("context_management", {})
+        return context_management.get("preserve_on_user_change", [])
+    
+    def get_user_identifier_field(self) -> str:
+        """
+        Obtiene el campo que identifica al usuario desde configuración.
+        
+        Returns:
+            str: Nombre del campo identificador de usuario
+        """
+        context_management = self.config.get("context_management", {})
+        return context_management.get("user_identifier_field", "dni")
